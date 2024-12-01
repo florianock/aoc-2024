@@ -6,6 +6,7 @@
 public class Day01 : BaseDay
 {
     private readonly string _input;
+    private (List<int>, List<int>)? _processed = null;
     
     public Day01()
     {
@@ -13,41 +14,43 @@ public class Day01 : BaseDay
         // _input = "3   4\n4   3\n2   5\n1   3\n3   9\n3   3";
     }
 
-    public override ValueTask<string> Solve_1() => new($"{Solve_1_Original()}");
+    public override ValueTask<string> Solve_1() => new($"{SumLocationDistances()}");
 
-    public override ValueTask<string> Solve_2() => new($"{Solve_2_Original()}");
+    public override ValueTask<string> Solve_2() => new($"{MultiplyLocationCounts()}");
 
-    private int Solve_1_Original()
+    private int SumLocationDistances()
     {
         // Test: 11
-        var locationLists = Process(_input);
+        var (list1, list2) = ProcessInput();
 
         var result = 0;
         
-        for (var i = 0; i < locationLists.Item1.Count; i++)
+        for (var i = 0; i < list1.Count; i++)
         {
-            result += Math.Abs(locationLists.Item1[i] - locationLists.Item2[i]);
+            result += Math.Abs(list1[i] - list2[i]);
         }
         
         return result;
     }
 
-    private int Solve_2_Original()
+    private int MultiplyLocationCounts()
     {
         // Test: 31
-        var locationLists = Process(_input);
-        var locationCounts = locationLists.Item2
+        var (list1, list2) =  ProcessInput();
+        var locationCounts = list2
             .GroupBy(i => i)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        return locationLists.Item1.Aggregate(0, (agg, next) => agg + next * locationCounts.GetValueOrDefault(next));
+        return list1.Aggregate(0, (agg, next) => agg + next * locationCounts.GetValueOrDefault(next));
     }
 
-    private static (List<int>, List<int>) Process(string input)
+    private (List<int>, List<int>) ProcessInput()
     {
+        if (_processed is not null) return _processed.Value;
+        
         var initial = (new List<int>(), new List<int>());
 
-        var lists = input
+        var lists = _input
             .Split("\n")
             .Select(x => x.Split("   "))
             .Aggregate(initial, (agg, next) =>
@@ -59,7 +62,9 @@ public class Day01 : BaseDay
 
         lists.Item1.Sort();
         lists.Item2.Sort();
-        
+
+        _processed = lists;
+
         return lists;
     }
 }
