@@ -5,13 +5,13 @@
 /// </summary>
 public class Day01 : BaseDay
 {
-    private readonly string _input;
-    private (List<int>, List<int>)? _processed = null;
+    private readonly IEnumerable<string> _input;
+    private (List<int>, List<int>)? _processed;
     
     public Day01()
     {
-        _input = File.ReadAllText(InputFilePath);
-        // _input = "3   4\n4   3\n2   5\n1   3\n3   9\n3   3";
+        _input = File.ReadLines(InputFilePath);
+        // _input = "3   4\n4   3\n2   5\n1   3\n3   9\n3   3".Split("\n");
     }
 
     public override ValueTask<string> Solve_1() => new($"{SumLocationDistances()}");
@@ -24,12 +24,10 @@ public class Day01 : BaseDay
         var (list1, list2) = ProcessInput();
 
         var result = 0;
-        
         for (var i = 0; i < list1.Count; i++)
         {
             result += Math.Abs(list1[i] - list2[i]);
         }
-        
         return result;
     }
 
@@ -51,7 +49,6 @@ public class Day01 : BaseDay
         var initial = (new List<int>(), new List<int>());
 
         var lists = _input
-            .Split("\n")
             .Select(x => x.Split("   "))
             .Aggregate(initial, (agg, next) =>
             {
