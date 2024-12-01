@@ -40,14 +40,7 @@ public class Day01 : BaseDay
             .GroupBy(i => i)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var result = 0;
-        
-        foreach (var loc in locationLists.Item1)
-        {
-            result += loc * locationCounts.GetValueOrDefault(loc);
-        }
-        
-        return result;
+        return locationLists.Item1.Aggregate(0, (agg, next) => agg + next * locationCounts.GetValueOrDefault(next));
     }
 
     private static (List<int>, List<int>) Process(string input)
