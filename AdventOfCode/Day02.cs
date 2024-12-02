@@ -19,8 +19,7 @@ public class Day02 : BaseDay
     
     private int GetReportsSafetyScore(bool useProblemDampener = false) =>
         _input.Select(report => IsSafe(Process(report), useProblemDampener))
-        .Select(isReportSafe => isReportSafe ? 1 : 0)
-        .Sum(); 
+        .Count(isReportSafe => isReportSafe); 
     
     private static bool IsSafe(int[] report, bool useProblemDampener = false)
     {
