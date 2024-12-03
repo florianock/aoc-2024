@@ -22,7 +22,7 @@ public partial class Day03 : BaseDay
     private int RunProgram(bool ignoreConditionals = false)
     {
         var result = 0;
-        var program = InstructionRegex().Matches(_input).Select(m => m.ToString());
+        var program = InstructionRegex().Matches(_input).Select(m => m.Value);
         var isEnabled = true;
         foreach (var instruction in program)
         {
@@ -33,8 +33,7 @@ public partial class Day03 : BaseDay
                 default:
                     if (ignoreConditionals || isEnabled)
                     {
-                        result += instruction
-                            .Substring(4, instruction.Length - 5)
+                        result += instruction.Substring(4, instruction.Length - 5)
                             .Split(',')
                             .Aggregate(1, (x, y) => x * int.Parse(y));
                     }
