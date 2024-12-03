@@ -7,7 +7,7 @@ public class Day01 : BaseDay
 {
     private readonly IEnumerable<string> _input;
     private (List<int>, List<int>)? _processed;
-    
+
     public Day01()
     {
         _input = File.ReadLines(InputFilePath);
@@ -28,13 +28,14 @@ public class Day01 : BaseDay
         {
             result += Math.Abs(list1[i] - list2[i]);
         }
+
         return result;
     }
 
     private int MultiplyLocationCounts()
     {
         // Test: 31
-        var (list1, list2) =  ProcessInput();
+        var (list1, list2) = ProcessInput();
         var locationCounts = list2
             .GroupBy(i => i)
             .ToDictionary(g => g.Key, g => g.Count());
@@ -45,7 +46,7 @@ public class Day01 : BaseDay
     private (List<int>, List<int>) ProcessInput()
     {
         if (_processed is not null) return _processed.Value;
-        
+
         var initial = (new List<int>(), new List<int>());
 
         var lists = _input

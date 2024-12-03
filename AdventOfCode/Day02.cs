@@ -14,13 +14,13 @@ public class Day02 : BaseDay
     }
 
     public override ValueTask<string> Solve_1() => new($"{GetReportsSafetyScore()}"); // Test: 2
-    
+
     public override ValueTask<string> Solve_2() => new($"{GetReportsSafetyScore(true)}"); // Test: 4
-    
+
     private int GetReportsSafetyScore(bool useProblemDampener = false) =>
         _input.Select(report => IsSafe(Process(report), useProblemDampener))
-        .Count(isReportSafe => isReportSafe); 
-    
+            .Count(isReportSafe => isReportSafe);
+
     private static bool IsSafe(int[] report, bool useProblemDampener = false)
     {
         var initialDirection = int.Sign(report[1] - report[0]);
@@ -28,14 +28,15 @@ public class Day02 : BaseDay
         {
             var step = report[i + 1] - report[i];
             var direction = int.Sign(step);
-            
+
             if (direction != 0 && direction == initialDirection && 1 <= Math.Abs(step) && Math.Abs(step) <= 3)
                 continue;
-            
+
             return useProblemDampener &&
                    (IsSafe(report.Where((_, idx) => idx != i).ToArray())
                     || IsSafe(report.Where((_, idx) => idx != i + 1).ToArray()));
         }
+
         return true;
     }
 

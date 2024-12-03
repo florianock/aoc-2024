@@ -38,12 +38,14 @@ public partial class Day03 : BaseDay
                             .Split(',')
                             .Aggregate(1, (x, y) => x * int.Parse(y));
                     }
+
                     break;
             }
         }
+
         return result;
     }
-    
+
     [GeneratedRegex(@"don't\(\)|do\(\)|mul\(-?[0-9]+,-?[0-9]+\)")]
     private static partial Regex InstructionRegex();
 }
