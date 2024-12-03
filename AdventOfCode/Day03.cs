@@ -22,19 +22,19 @@ public partial class Day03 : BaseDay
     private int RunProgram(Regex regex)
     {
         var result = 0;
-        var matches = regex.Matches(_input);
+        var program = regex.Matches(_input);
         var isEnabled = true;
-        foreach (Match match in matches)
+        foreach (Match instruction in program)
         {
-            var statement = match.ToString();
-            switch (statement)
+            var s = instruction.ToString();
+            switch (s)
             {
                 case "do()": isEnabled = true; break;
                 case "don't()": isEnabled = false; break;
                 default:
                     if (isEnabled)
                     {
-                        result += statement.Substring(4, statement.Length - 5)
+                        result += s.Substring(4, s.Length - 5)
                             .Split(',')
                             .Select(int.Parse)
                             .Aggregate(1, (x, y) => x * y);
