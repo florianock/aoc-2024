@@ -14,27 +14,19 @@ public class Day01 : BaseDay
         // _input = "3   4\n4   3\n2   5\n1   3\n3   9\n3   3".Split("\n");
     }
 
-    public override ValueTask<string> Solve_1() => new($"{SumLocationDistances()}");
+    public override ValueTask<string> Solve_1() => new($"{SumLocationDistances()}"); // Test: 11
 
-    public override ValueTask<string> Solve_2() => new($"{MultiplyLocationCounts()}");
+    public override ValueTask<string> Solve_2() => new($"{MultiplyLocationCounts()}"); // Test: 31
 
     private int SumLocationDistances()
     {
-        // Test: 11
         var (list1, list2) = ProcessInput();
 
-        var result = 0;
-        for (var i = 0; i < list1.Count; i++)
-        {
-            result += Math.Abs(list1[i] - list2[i]);
-        }
-
-        return result;
+        return list1.Select((a, b) => Math.Abs(a - list2[b])).Sum();
     }
 
     private int MultiplyLocationCounts()
     {
-        // Test: 31
         var (list1, list2) = ProcessInput();
         var locationCounts = list2
             .GroupBy(i => i)
