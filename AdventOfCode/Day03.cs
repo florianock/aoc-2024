@@ -2,6 +2,9 @@
 
 namespace AdventOfCode;
 
+/// <summary>
+/// --- Day 3: Mull It Over ---
+/// </summary>
 public partial class Day03 : BaseDay
 {
     private readonly string _input;
