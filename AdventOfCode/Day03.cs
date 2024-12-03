@@ -24,17 +24,17 @@ public partial class Day03 : BaseDay
         var result = 0;
         var program = regex.Matches(_input);
         var isEnabled = true;
-        foreach (Match instruction in program)
+        foreach (Match line in program)
         {
-            var s = instruction.ToString();
-            switch (s)
+            var instruction = line.ToString();
+            switch (instruction)
             {
                 case "do()": isEnabled = true; break;
                 case "don't()": isEnabled = false; break;
                 default:
                     if (isEnabled)
                     {
-                        result += s.Substring(4, s.Length - 5)
+                        result += instruction.Substring(4, instruction.Length - 5)
                             .Split(',')
                             .Select(int.Parse)
                             .Aggregate(1, (x, y) => x * y);
