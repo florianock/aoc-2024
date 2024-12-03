@@ -22,11 +22,10 @@ public partial class Day03 : BaseDay
     private int RunProgram(bool ignoreConditionals = false)
     {
         var result = 0;
-        var program = InstructionRegex().Matches(_input);
+        var program = InstructionRegex().Matches(_input).Select(m => m.ToString());
         var isEnabled = true;
-        foreach (Match line in program)
+        foreach (var instruction in program)
         {
-            var instruction = line.ToString();
             switch (instruction)
             {
                 case "do()": isEnabled = true; break;
