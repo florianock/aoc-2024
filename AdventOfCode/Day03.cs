@@ -36,8 +36,7 @@ public partial class Day03 : BaseDay
                     {
                         result += instruction.Substring(4, instruction.Length - 5)
                             .Split(',')
-                            .Select(int.Parse)
-                            .Aggregate(1, (x, y) => x * y);
+                            .Aggregate(1, (x, y) => x * int.Parse(y));
                     }
                     break;
             }
