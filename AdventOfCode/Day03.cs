@@ -33,7 +33,8 @@ public partial class Day03 : BaseDay
                 default:
                     if (ignoreConditionals || isEnabled)
                     {
-                        result += instruction.Substring(4, instruction.Length - 5)
+                        result += instruction
+                            .Substring(4, instruction.Length - 5)
                             .Split(',')
                             .Aggregate(1, (x, y) => x * int.Parse(y));
                     }
@@ -45,6 +46,6 @@ public partial class Day03 : BaseDay
         return result;
     }
 
-    [GeneratedRegex(@"don't\(\)|do\(\)|mul\(-?[0-9]+,-?[0-9]+\)")]
+    [GeneratedRegex(@"don't\(\)|do\(\)|mul\(\d{1,3},\d{1,3}\)")]
     private static partial Regex InstructionRegex();
 }
