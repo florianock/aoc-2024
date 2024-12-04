@@ -27,7 +27,7 @@ public sealed class Day04 : BaseDay
         {
             for (var c = 0; c <= maxCol; c++)
             {
-                if (_input[r][c] != pattern[0]) continue;
+                if (_input[r][c] != 'X') continue;
                 foreach (var direction in Enum.GetValues<Direction>())
                 {
                     var matchedCharacters = 1;
@@ -62,14 +62,8 @@ public sealed class Day04 : BaseDay
             for (var c = 1; c <= maxCol - 1; c++)
             {
                 if (_input[r][c] != 'A') continue;
-                (int, int)[] diagonalCoordinates =
-                [
-                    Step((r, c), Direction.NorthWest), Step((r, c), Direction.NorthEast),
-                    Step((r, c), Direction.SouthWest), Step((r, c), Direction.SouthEast)
-                ];
-                var diagonalChars = diagonalCoordinates
-                    .Select(point => _input[point.Item1][point.Item2])
-                    .ToArray();
+                var diagonalChars = (((int, int)[]) [(r - 1, c - 1), (r - 1, c + 1), (r + 1, c - 1), (r + 1, c + 1)])
+                    .Select(point => _input[point.Item1][point.Item2]).ToArray();
                 if (diagonalChars.Count(ch => ch == 'M') == 2 &&
                     diagonalChars.Count(ch => ch == 'S') == 2 &&
                     diagonalChars[1] != diagonalChars[2])
