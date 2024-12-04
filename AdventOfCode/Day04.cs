@@ -11,13 +11,11 @@ public sealed class Day04 : BaseDay
     {
         _input = File.ReadLines(InputFilePath).ToArray();
         // _input = "MMMSXXMASM\nMSAMXMSMSA\nAMXSXMAAMM\nMSAMASMSMX\nXMASAMXAMM\nXXAMMXXAMA\nSMSMSASXSS\nSAXAMASAAA\nMAMMMXMMMM\nMXMXAXMASX".Split('\n');
-        // Test1: 18
-        // Test2: 9
     }
 
-    public override ValueTask<string> Solve_1() => new($"{SearchForXmas()}");
+    public override ValueTask<string> Solve_1() => new($"{SearchForXmas()}"); // Test: 18
 
-    public override ValueTask<string> Solve_2() => new($"{SearchForX_Mas()}");
+    public override ValueTask<string> Solve_2() => new($"{SearchForX_Mas()}"); // Test: 9
 
     private int SearchForXmas()
     {
