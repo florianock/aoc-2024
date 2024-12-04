@@ -17,7 +17,7 @@ public sealed class Day04 : BaseDay
 
     public override ValueTask<string> Solve_1() => new($"{SearchForXmas()}");
 
-    public override ValueTask<string> Solve_2() => new($"{SearchForCrossMas()}");
+    public override ValueTask<string> Solve_2() => new($"{SearchForX_Mas()}");
 
     private int SearchForXmas()
     {
@@ -54,7 +54,7 @@ public sealed class Day04 : BaseDay
         return result;
     }
 
-    private int SearchForCrossMas()
+    private int SearchForX_Mas()
     {
         var result = 0;
         var maxRow = _input.Length - 1;
