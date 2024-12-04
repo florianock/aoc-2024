@@ -72,9 +72,9 @@ public sealed class Day04 : BaseDay
                 var diagonalChars = diagonalCoordinates
                     .Select(point => _input[point.Item1][point.Item2])
                     .ToArray();
-                if (diagonalChars.Count(i => i == 'M') == 2
-                    && diagonalChars.Count(i => i == 'S') == 2
-                    && diagonalChars[1] != diagonalChars[2])
+                if (diagonalChars.Count(ch => ch == 'M') == 2 &&
+                    diagonalChars.Count(ch => ch == 'S') == 2 &&
+                    diagonalChars[1] != diagonalChars[2])
                 {
                     result++;
                 }
