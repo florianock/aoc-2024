@@ -12,8 +12,8 @@ public sealed class Day05 : BaseDay
     {
         var input = File.ReadLines(InputFilePath).ToArray();
         // var input =
-            // "47|53\n97|13\n97|61\n97|47\n75|29\n61|13\n75|53\n29|13\n97|29\n53|29\n61|53\n97|53\n61|29\n47|13\n75|47\n97|75\n47|61\n75|61\n47|29\n75|13\n53|13\n\n75,47,61,53,29\n97,61,53,29,13\n75,29,13\n75,97,47,61,53\n61,13,29\n97,13,75,29,47"
-                // .Split('\n');
+        // "47|53\n97|13\n97|61\n97|47\n75|29\n61|13\n75|53\n29|13\n97|29\n53|29\n61|53\n97|53\n61|29\n47|13\n75|47\n97|75\n47|61\n75|61\n47|29\n75|13\n53|13\n\n75,47,61,53,29\n97,61,53,29,13\n75,29,13\n75,97,47,61,53\n61,13,29\n97,13,75,29,47"
+        // .Split('\n');
         // Test1: 143
         // Test2: 123
         var cutOff = Array.IndexOf(input, string.Empty);
@@ -24,19 +24,16 @@ public sealed class Day05 : BaseDay
         _pageUpdates = input[(cutOff + 1)..].Select(update => update.Split(',').Select(int.Parse).ToArray());
     }
 
-    public override ValueTask<string> Solve_1() => new($"{SumValidUpdates()}");
+    public override ValueTask<string> Solve_1() => new($"{_pageUpdates.Where(IsValid).Sum(MiddlePage)}");
 
-    public override ValueTask<string> Solve_2() => new($"{SumCorrectedInvalidUpdates()}");
+    public override ValueTask<string> Solve_2() =>
+        new($"{_pageUpdates.Where(IsInvalid).Select(FixFaults).Sum(MiddlePage)}");
 
-    private int SumValidUpdates() => _pageUpdates.Where(IsValid).Sum(Middle);
+    private bool IsValid(int[] update) => FindFault(update) is null;
 
-    private int SumCorrectedInvalidUpdates() => _pageUpdates.Where(IsInvalid).Select(FixFaults).Sum(Middle);
+    private bool IsInvalid(int[] update) => !IsValid(update);
 
-    private bool IsValid(int[] update) => !IsInvalid(update);
-
-    private bool IsInvalid(int[] update) => FindFault(update).HasValue;
-
-    private static int Middle(int[] update) => update[update.Length / 2];
+    private static int MiddlePage(int[] update) => update[update.Length / 2];
 
     private (int, int)? FindFault(int[] update)
     {
@@ -65,6 +62,7 @@ public sealed class Day05 : BaseDay
             corrected[idx1] = conflictingRule.Value.Item2;
             corrected[idx2] = conflictingRule.Value.Item1;
         }
+
         return corrected;
     }
 }
