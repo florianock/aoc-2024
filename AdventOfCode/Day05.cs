@@ -45,15 +45,6 @@ public sealed class Day05 : BaseDay
             if (a > b) return (a, b);
         }
 
-        // for (var i = 0; i < update.Length; i++)
-        // {
-        //     for (var j = i + 1; j < update.Length; j++)
-        //     {
-        //         if (!relevantRules.Contains((update[j], update[i]))) continue;
-        //         return (i, j);
-        //     }
-        // }
-
         return null;
     }
 
