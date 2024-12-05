@@ -28,15 +28,32 @@ public sealed class Day05 : BaseDay
 
     public override ValueTask<string> Solve_2() => new($"{SumCorrectedInvalidUpdates()}");
 
-    private int SumValidUpdates() =>
-        _pageUpdates.Where(update => !IsInvalid(update)).Sum(update => update[update.Length / 2]);
+    private int SumValidUpdates() => _pageUpdates.Where(IsValid).Sum(Middle);
+
+    private int SumCorrectedInvalidUpdates() => _pageUpdates.Where(IsInvalid).Select(FixFaults).Sum(Middle);
+
+    private bool IsValid(int[] update) => !IsInvalid(update);
 
     private bool IsInvalid(int[] update) => FindFault(update).HasValue;
 
-    private int SumCorrectedInvalidUpdates() =>
-        _pageUpdates.Where(IsInvalid).Select(Correct).Sum(update => update[update.Length / 2]);
+    private static int Middle(int[] update) => update[update.Length / 2];
 
-    private int[] Correct(int[] update)
+    private (int, int)? FindFault(int[] update)
+    {
+        for (var i = 0; i < update.Length; i++)
+        {
+            for (var j = i + 1; j < update.Length; j++)
+            {
+                if (!_pageOrderingRules.Contains((update[j], update[i]))) continue;
+                // Console.WriteLine($"{string.Join(",", update)} violates rule {update[j]}|{update[i]}");
+                return (update[j], update[i]);
+            }
+        }
+
+        return null;
+    }
+
+    private int[] FixFaults(int[] update)
     {
         var corrected = update;
         while (true)
@@ -49,21 +66,5 @@ public sealed class Day05 : BaseDay
             corrected[idx2] = conflictingRule.Value.Item1;
         }
         return corrected;
-    }
-
-    private (int, int)? FindFault(int[] update)
-    {
-        for (var i = 0; i < update.Length; i++)
-        {
-            for (var j = i + 1; j < update.Length; j++)
-            {
-                // Console.WriteLine($"Checking: ({update[j]}, {update[i]})");
-                if (!_pageOrderingRules.Contains((update[j], update[i]))) continue;
-                // Console.WriteLine($"{string.Join(",", update)} is invalid!: Violates rule {update[j]}|{update[i]}");
-                return (update[j], update[i]);
-            }
-        }
-
-        return null;
     }
 }
