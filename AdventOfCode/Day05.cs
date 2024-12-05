@@ -37,15 +37,22 @@ public sealed class Day05 : BaseDay
 
     private (int, int)? FindFault(int[] update)
     {
-        for (var i = 0; i < update.Length; i++)
+        var relevantRules = _pageOrderingRules.Where(r => update.Contains(r.Item1) && update.Contains(r.Item2));
+        foreach (var rule in relevantRules)
         {
-            for (var j = i + 1; j < update.Length; j++)
-            {
-                if (!_pageOrderingRules.Contains((update[j], update[i]))) continue;
-                // Console.WriteLine($"{string.Join(",", update)} violates rule {update[j]}|{update[i]}");
-                return (update[j], update[i]);
-            }
+            var a = Array.IndexOf(update, rule.Item1);
+            var b = Array.IndexOf(update, rule.Item2);
+            if (a > b) return (a, b);
         }
+
+        // for (var i = 0; i < update.Length; i++)
+        // {
+        //     for (var j = i + 1; j < update.Length; j++)
+        //     {
+        //         if (!relevantRules.Contains((update[j], update[i]))) continue;
+        //         return (i, j);
+        //     }
+        // }
 
         return null;
     }
@@ -55,12 +62,10 @@ public sealed class Day05 : BaseDay
         var corrected = update;
         while (true)
         {
-            var conflictingRule = FindFault(corrected);
-            if (!conflictingRule.HasValue) break;
-            var idx1 = Array.IndexOf(update, conflictingRule.Value.Item1);
-            var idx2 = Array.IndexOf(update, conflictingRule.Value.Item2);
-            corrected[idx1] = conflictingRule.Value.Item2;
-            corrected[idx2] = conflictingRule.Value.Item1;
+            var conflicting = FindFault(corrected);
+            if (conflicting is null) break;
+            var (idx1, idx2) = conflicting.Value;
+            (corrected[idx1], corrected[idx2]) = (corrected[idx2], corrected[idx1]);
         }
 
         return corrected;
