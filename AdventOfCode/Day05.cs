@@ -53,14 +53,7 @@ public sealed class Day05 : BaseDay
 
     private List<string> FixFaults(List<string> update)
     {
-        while (true)
-        {
-            var fault = FindFault(update);
-            if (fault is null) break;
-            var (idx1, idx2) = fault.Value;
-            (update[idx1], update[idx2]) = (update[idx2], update[idx1]);
-        }
-
+        update.Sort((a, b) => _pageUpdatesWithRules[update].Contains((a, b)) ? -1 : 1);
         return update;
     }
 }
