@@ -50,15 +50,14 @@ public sealed class Day05 : BaseDay
 
     private int[] FixFaults(int[] update)
     {
-        var corrected = update;
         while (true)
         {
-            var conflicting = FindFault(corrected);
-            if (conflicting is null) break;
-            var (idx1, idx2) = conflicting.Value;
-            (corrected[idx1], corrected[idx2]) = (corrected[idx2], corrected[idx1]);
+            var fault = FindFault(update);
+            if (fault is null) break;
+            var (idx1, idx2) = fault.Value;
+            (update[idx1], update[idx2]) = (update[idx2], update[idx1]);
         }
 
-        return corrected;
+        return update;
     }
 }
