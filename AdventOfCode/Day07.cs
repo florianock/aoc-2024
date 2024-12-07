@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace AdventOfCode;
 
@@ -12,10 +11,10 @@ public class Day07 : BaseDay
 
     public Day07()
     {
-        // var lines = File.ReadLines(InputFilePath);
-        var lines =
-            "190: 10 19\n3267: 81 40 27\n83: 17 5\n156: 15 6\n7290: 6 8 6 15\n161011: 16 10 13\n192: 17 8 14\n21037: 9 7 18 13\n292: 11 6 16 20"
-                .Split("\n");
+        var lines = File.ReadLines(InputFilePath);
+        // var lines =
+            // "190: 10 19\n3267: 81 40 27\n83: 17 5\n156: 15 6\n7290: 6 8 6 15\n161011: 16 10 13\n192: 17 8 14\n21037: 9 7 18 13\n292: 11 6 16 20"
+                // .Split("\n");
 
         _input = lines.Select(s => s.Split(' ').Select(i => long.Parse(i.Replace(":", ""))).ToList()).ToList();
     }
@@ -50,8 +49,8 @@ public class Day07 : BaseDay
     {
         return newBase switch
         {
-            2 => Convert.ToString(i, newBase),
-            3 => Convert.ToString(i + 1, newBase),
+            2 => Convert.ToString(i, 2),
+            3 => ConvertToTernary(i),
             _ => throw new ArgumentException("Only base 2 and 3 are supported.")
         };
     }
@@ -72,5 +71,20 @@ public class Day07 : BaseDay
         }
 
         return result == answer;
+    }
+
+    // from: https://www.geeksforgeeks.org/ternary-number-system-or-base-3-numbers/
+    private static string ConvertToTernary(int n)
+    {
+        if (n == 0) return "";
+
+        var x = n % 3;
+        n /= 3;
+        if (x < 0)
+            n += 1;
+
+        var remainder = ConvertToTernary(n);
+
+        return x >= 0 ? remainder + x : remainder + (x + 3 * -1);
     }
 }
