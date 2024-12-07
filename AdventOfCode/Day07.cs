@@ -31,6 +31,8 @@ public class Day07 : BaseDay
 
     private static bool HasSolution(List<long> parts, long answer, char[] operators)
     {
+        Debug.Assert(ConvertToTernary(101, "") == "10202");
+        Debug.Assert(ConvertToTernary(2747, "") == "10202202");
         List<string> operatorCombinations = [];
         for (var i = Math.Pow(operators.Length, parts.Count - 1) - 1; i >= 0; i--)
         {
@@ -50,23 +52,23 @@ public class Day07 : BaseDay
         return newBase switch
         {
             2 => Convert.ToString(i, 2),
-            3 => ConvertToTernary(i),
+            3 => ConvertToTernary(i, ""),
             _ => throw new ArgumentException("Only base 2 and 3 are supported.")
         };
     }
 
-    private static bool Solve(List<long> parts, long answer, string s)
+    private static bool Solve(List<long> parts, long answer, string ops)
     {
-        Debug.Assert(parts.Count == s.Length + 1);
+        Debug.Assert(parts.Count == ops.Length + 1);
         var result = parts[0];
         for (var i = 1; i < parts.Count; i++)
         {
-            switch (s[i - 1])
+            switch (ops[i - 1])
             {
                 case '+': result += parts[i]; break;
                 case '*': result *= parts[i]; break;
                 case '|': result = long.Parse($"{result}{parts[i]}"); break;
-                default: throw new ArgumentException($"{s[i - 1]} is not a valid operator.");
+                default: throw new ArgumentException($"{ops[i - 1]} is not a valid operator.");
             }
         }
 
@@ -74,17 +76,17 @@ public class Day07 : BaseDay
     }
 
     // from: https://www.geeksforgeeks.org/ternary-number-system-or-base-3-numbers/
-    private static string ConvertToTernary(int n)
+    private static string ConvertToTernary(int n, string retval)
     {
-        if (n == 0) return "";
+        while (true)
+        {
+            if (n == 0) return retval;
 
-        var x = n % 3;
-        n /= 3;
-        if (x < 0)
-            n += 1;
+            var x = n % 3;
+            n /= 3;
+            if (x < 0) n += 1;
 
-        var remainder = ConvertToTernary(n);
-
-        return x >= 0 ? remainder + x : remainder + (x + 3 * -1);
+            retval = x >= 0 ? x + retval : (x + 3 * -1) + retval;
+        }
     }
 }
