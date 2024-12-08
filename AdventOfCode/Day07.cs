@@ -31,8 +31,8 @@ public class Day07 : BaseDay
 
     private static bool HasSolution(List<long> parts, long answer, char[] operators)
     {
-        Debug.Assert(ConvertToTernary(101, "") == "10202");
-        Debug.Assert(ConvertToTernary(2747, "") == "10202202");
+        Debug.Assert(IntToStringFast(101, ['0', '1', '2']) == "10202");
+        Debug.Assert(IntToStringFast(2747, ['0', '1', '2']) == "10202202");
         List<string> operatorCombinations = [];
         for (var i = Math.Pow(operators.Length, parts.Count - 1) - 1; i >= 0; i--)
         {
@@ -52,7 +52,7 @@ public class Day07 : BaseDay
         return newBase switch
         {
             2 => Convert.ToString(i, 2),
-            3 => ConvertToTernary(i, ""),
+            3 => DecimalToArbitrarySystem(i, 3),
             _ => throw new ArgumentException("Only base 2 and 3 are supported.")
         };
     }
@@ -67,7 +67,7 @@ public class Day07 : BaseDay
             {
                 case '+': result += parts[i]; break;
                 case '*': result *= parts[i]; break;
-                case '|': result = long.Parse($"{result}{parts[i]}"); break;
+                case '|': result = long.Parse(result.ToString() + parts[i]); break;
                 default: throw new ArgumentException($"{ops[i - 1]} is not a valid operator.");
             }
         }
@@ -86,7 +86,58 @@ public class Day07 : BaseDay
             n /= 3;
             if (x < 0) n += 1;
 
-            retval = x >= 0 ? x + retval : (x + 3 * -1) + retval;
+            retval = x >= 0 ? x.ToString() + retval : (x + 3 * -1).ToString() + retval;
         }
+    }
+    
+    private static string IntToStringFast(int value, char[] baseChars)
+    {
+        // https://stackoverflow.com/questions/923771/quickest-way-to-convert-a-base-10-number-to-any-base-in-net
+        var i = 32;
+        var buffer = new char[i];
+        var targetBase= baseChars.Length;
+
+        do
+        {
+            buffer[--i] = baseChars[value % targetBase];
+            value /= targetBase;
+        }
+        while (value > 0);
+
+        var result = new char[32 - i];
+        Array.Copy(buffer, i, result, 0, 32 - i);
+
+        return new string(result);
+    }
+    
+    public static string DecimalToArbitrarySystem(long decimalNumber, int radix)
+    {
+        const int BitsInLong = 64;
+        const string Digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        if (radix < 2 || radix > Digits.Length)
+            throw new ArgumentException("The radix must be >= 2 and <= " + Digits.Length.ToString());
+
+        if (decimalNumber == 0)
+            return "0";
+
+        int index = BitsInLong - 1;
+        long currentNumber = Math.Abs(decimalNumber);
+        char[] charArray = new char[BitsInLong];
+
+        while (currentNumber != 0)
+        {
+            int remainder = (int)(currentNumber % radix);
+            charArray[index--] = Digits[remainder];
+            currentNumber = currentNumber / radix;
+        }
+
+        string result = new String(charArray, index + 1, BitsInLong - index - 1);
+        if (decimalNumber < 0)
+        {
+            result = "-" + result;
+        }
+
+        return result;
     }
 }
