@@ -89,15 +89,3 @@ public sealed class Day04 : BaseDay
         _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
     };
 }
-
-internal enum Direction
-{
-    North,
-    NorthEast,
-    East,
-    SouthEast,
-    South,
-    SouthWest,
-    West,
-    NorthWest
-}
