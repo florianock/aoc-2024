@@ -6,7 +6,7 @@
 public class Day08 : BaseDay
 {
     private readonly List<string> _input;
-    private readonly IDictionary<char, List<(int, int)>> _antennas;
+    private readonly Dictionary<char, List<(int, int)>> _antennas;
 
     public Day08()
     {
