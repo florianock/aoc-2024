@@ -31,18 +31,23 @@ public class Day07 : BaseDay
 
     private static bool HasSolution(List<long> parts, long answer, char[] operators)
     {
-        List<string> operatorCombinations = [];
+        List<char[]> operatorCombinations = [];
         for (var i = Math.Pow(operators.Length, parts.Count - 1) - 1; i >= 0; i--)
         {
-            var s = ConvertToBaseString((int)i, operators.Length)
-                .PadLeft(parts.Count - 1, '+');
+            var s = ConvertToBaseString((int)i, operators.Length);
+            if (s.Length < parts.Count - 1)
+            {
+                var diff = parts.Count - 1 - s.Length;
+                var padding = Enumerable.Repeat('+', diff).ToArray();
+                s = padding.Concat(s).ToArray();
+            }
             operatorCombinations.Add(s);
         }
 
         return operatorCombinations.Any(combination => Solve(parts, answer, combination));
     }
 
-    private static string ConvertToBaseString(int i, int newBase)
+    private static char[] ConvertToBaseString(int i, int newBase)
     {
         return newBase switch
         {
@@ -52,7 +57,7 @@ public class Day07 : BaseDay
         };
     }
 
-    private static bool Solve(List<long> parts, long answer, string ops)
+    private static bool Solve(List<long> parts, long answer, char[] ops)
     {
         Debug.Assert(parts.Count == ops.Length + 1);
         var result = parts[0];
@@ -70,7 +75,7 @@ public class Day07 : BaseDay
         return result == answer;
     }
 
-    private static string IntToStringFast(int value, char[] baseChars)
+    private static char[] IntToStringFast(int value, char[] baseChars)
     {
         // https://stackoverflow.com/questions/923771/quickest-way-to-convert-a-base-10-number-to-any-base-in-net
         var i = 32;
@@ -87,6 +92,6 @@ public class Day07 : BaseDay
         var result = new char[32 - i];
         Array.Copy(buffer, i, result, 0, 32 - i);
 
-        return new string(result);
+        return result;
     }
 }
