@@ -49,7 +49,7 @@ public class Day09 : BaseDay
                 .ToArray();
         }
 
-        return expanded.ToArray();
+        return expanded;
     }
 
     private static int[] Compress(int[] expanded)
@@ -77,12 +77,9 @@ public class Day09 : BaseDay
         var result = new List<int>();
         for (var i = 0; i < diskMap.Length; i++)
         {
-            var times = diskMap[i];
+            var size = diskMap[i];
             var n = i % 2 == 0 ? id++ : -1;
-            for (var j = 0; j < times; j++)
-            {
-                result.Add(n);
-            }
+            for (var j = 0; j < size; j++) result.Add(n);
         }
 
         return result.ToArray();
