@@ -9,40 +9,23 @@ public class Day09 : BaseDay
 
     public Day09()
     {
-        // _input = File.ReadAllText(InputFilePath).Trim();
-        _input = "2333133121414131402".Trim();
+        _input = File.ReadAllText(InputFilePath).Trim();
+        // _input = "2333133121414131402".Trim();
     }
 
     public override ValueTask<string> Solve_1() =>
-        new($"{Compress(_input, false).Select((n, idx) => (long)n * idx).Sum()}"); // Test: 1928
+        new($"{DiskClean(_input, false).Select((n, idx) => (long)n * idx).Sum()}"); // Test: 1928
 
     public override ValueTask<string> Solve_2() =>
-        new($"{Compress(_input).Select((n, idx) => n < 0 ? 0 : (long)n * idx).Sum()}"); // Test: 2858
+        new($"{DiskClean(_input).Select((n, idx) => n < 0 ? 0 : (long)n * idx).Sum()}"); // Test: 2858
 
-    private static int[] Compress(string input, bool preventFragmentation = true)
+    private static int[] DiskClean(string input, bool preventFragmentation = true)
     {
         var diskMap = input.Select(c => int.Parse(c.ToString())).ToArray();
         var expanded = Expand(diskMap);
-        var lastItemIndex = expanded.Length - 1;
         var data = diskMap.Index().Where(c => c.Item1 % 2 == 0).ToArray();
 
-        if (!preventFragmentation)
-        {
-            for (var i = 0; i < expanded.Length; i++)
-            {
-                // Print(expanded);
-                if (expanded[i] != -1) continue;
-                while (expanded[lastItemIndex] == -1)
-                {
-                    lastItemIndex--;
-                }
-
-                if (lastItemIndex <= i) break;
-                (expanded[i], expanded[lastItemIndex]) = (expanded[lastItemIndex], expanded[i]);
-            }
-
-            return expanded.Where(i => i > -1).ToArray();
-        }
+        if (!preventFragmentation) return Compress(expanded);
 
         foreach (var (idx, fileSize) in data.Reverse())
         {
@@ -52,11 +35,7 @@ public class Day09 : BaseDay
             for (var i = 0; i < expanded.Length - fileSize - 1; i++)
             {
                 List<int> chunk = [];
-                for (var s = 0; s < fileSize; s++)
-                {
-                    chunk.Add(expanded[i + s]);
-                }
-
+                for (var s = 0; s < fileSize; s++) chunk.Add(expanded[i + s]);
                 if (chunk.Any(c => c == id)) break;
                 if (chunk.Any(c => c != -1)) continue;
                 freeSpaceIdx = i;
@@ -64,16 +43,32 @@ public class Day09 : BaseDay
             }
 
             if (freeSpaceIdx < 0) continue;
-            for (var k = 0; k < fileSize; k++)
-            {
-                expanded[freeSpaceIdx + k] = id;
-            }
+            for (var k = 0; k < fileSize; k++) expanded[freeSpaceIdx + k] = id;
 
             expanded = expanded.Select((n, index) => index >= freeSpaceIdx + fileSize && n == id ? -1 : n)
                 .ToArray();
         }
 
         return expanded.ToArray();
+    }
+
+    private static int[] Compress(int[] expanded)
+    {
+        var lastItemIndex = expanded.Length - 1;
+        for (var i = 0; i < expanded.Length; i++)
+        {
+            // Print(expanded);
+            if (expanded[i] != -1) continue;
+            while (expanded[lastItemIndex] == -1)
+            {
+                lastItemIndex--;
+            }
+
+            if (lastItemIndex <= i) break;
+            (expanded[i], expanded[lastItemIndex]) = (expanded[lastItemIndex], expanded[i]);
+        }
+
+        return expanded.Where(i => i > -1).ToArray();
     }
 
     private static int[] Expand(int[] diskMap)
