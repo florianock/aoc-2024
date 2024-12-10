@@ -12,17 +12,14 @@ public class Day10 : BaseDay
     {
         // _input = "89010123\n78121874\n87430965\n96549874\n45678903\n32019012\n01329801\n10456732".Split('\n').ToList();
         _input = File.ReadLines(InputFilePath).ToList();
-
-        List<(int, int)> trailHeads = [];
+        _topsReached = new Dictionary<(int, int), List<(int, int)>>();
         for (var i = 0; i < _input.Count; i++)
         {
             for (var j = 0; j < _input[0].Length; j++)
             {
-                if (_input[i][j] == '0') trailHeads.Add((i, j));
+                if (_input[i][j] == '0') _topsReached.Add((i, j), GetTops((i, j)));
             }
         }
-
-        _topsReached = trailHeads.ToDictionary(t => t, GetTops);
     }
 
     public override ValueTask<string> Solve_1() =>
