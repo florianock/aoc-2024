@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode;
+﻿using AdventOfCode.Utils;
+
+namespace AdventOfCode;
 
 /// <summary>
 /// --- Day 6: Guard Gallivant ---
