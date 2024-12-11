@@ -31,7 +31,7 @@ public sealed class Day11 : BaseDay
     {
         for (var i = 0; i < times; i++)
             stones = Blink(stones);
-        return stones.Sum(count => count.Value);
+        return stones.Sum(counter => counter.Value);
     }
 
     private Counter<string> Blink(Counter<string> stones)
@@ -52,7 +52,7 @@ public sealed class Day11 : BaseDay
         if (_cache.TryGetValue(stone, out var cachedResult)) return cachedResult;
 
         string[] result;
-        if (long.Parse(stone) == 0)
+        if (stone == "0")
             result = ["1"];
         else if (stone.Length % 2 != 0)
             result = [(long.Parse(stone) * 2024).ToString()];
