@@ -7,57 +7,58 @@ namespace AdventOfCode;
 /// </summary>
 public sealed class Day11 : BaseDay
 {
-    private readonly Counter<string> _starterStoneCounts;
-    private readonly IDictionary<string, string[]> _cache;
+    private readonly Counter<string> _starterStones;
+    private readonly Dictionary<string, string[]> _cache;
 
     public Day11()
     {
         var line = File.ReadAllText(InputFilePath).Split(' ').ToList();
         // var line = "125 17".Split(' ').ToList();
-        _starterStoneCounts = new Counter<string>();
+        _starterStones = new Counter<string>();
         foreach (var stone in line)
-            _starterStoneCounts.Update(stone);
+            _starterStones.Update(stone);
 
         _cache = new Dictionary<string, string[]>();
     }
 
     public override ValueTask<string> Solve_1() =>
-        new($"{StoneCountAfterBlinking(_starterStoneCounts, 25)}"); // Test: 55312 
+        new($"{StoneCountAfterBlinking(_starterStones, 25)}"); // Test: 55312 
 
     public override ValueTask<string> Solve_2() =>
-        new($"{StoneCountAfterBlinking(_starterStoneCounts, 75)}"); // Test: 65601038650482
+        new($"{StoneCountAfterBlinking(_starterStones, 75)}"); // Test: 65601038650482
 
-    private long StoneCountAfterBlinking(Counter<string> stoneCounts, int times)
+    private long StoneCountAfterBlinking(Counter<string> stones, int times)
     {
         for (var i = 0; i < times; i++)
-            stoneCounts = Blink(stoneCounts);
-        return stoneCounts.Sum(count => count.Value);
+            stones = Blink(stones);
+        return stones.Sum(count => count.Value);
     }
 
-    private Counter<string> Blink(Counter<string> stoneCounts)
+    private Counter<string> Blink(Counter<string> stones)
     {
-        var newStoneCounts = new Counter<string>();
+        var changedStones = new Counter<string>();
 
-        foreach (var kv in stoneCounts)
+        foreach (var (stone, count) in stones)
         {
-            foreach (var stone in ChangeStone(kv)) newStoneCounts.Update(stone, kv.Value);
+            foreach (var changedStone in ChangeStone(stone))
+                changedStones.Update(changedStone, count);
         }
 
-        return newStoneCounts;
+        return changedStones;
     }
 
-    private string[] ChangeStone(KeyValuePair<string, long> kv)
+    private string[] ChangeStone(string stone)
     {
-        if (_cache.TryGetValue(kv.Key, out var cachedResult)) return cachedResult;
+        if (_cache.TryGetValue(stone, out var cachedResult)) return cachedResult;
 
         string[] result;
-        if (long.Parse(kv.Key) == 0)
+        if (long.Parse(stone) == 0)
             result = ["1"];
-        else if (kv.Key.Length % 2 != 0)
-            result = [(long.Parse(kv.Key) * 2024).ToString()];
+        else if (stone.Length % 2 != 0)
+            result = [(long.Parse(stone) * 2024).ToString()];
         else
         {
-            result = [kv.Key[..(kv.Key.Length / 2)], kv.Key[(kv.Key.Length / 2)..]];
+            result = [stone[..(stone.Length / 2)], stone[(stone.Length / 2)..]];
             result = result.Select(n =>
             {
                 var trimmed = n.TrimStart('0');
@@ -65,7 +66,7 @@ public sealed class Day11 : BaseDay
             }).ToArray();
         }
 
-        _cache.Add(kv.Key, result);
+        _cache.Add(stone, result);
         return result;
     }
 }
