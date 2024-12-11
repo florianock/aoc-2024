@@ -1,25 +1,22 @@
-﻿namespace AdventOfCode;
+﻿using AdventOfCode.Utils;
+
+namespace AdventOfCode;
 
 /// <summary>
 /// --- Day 11: Plutonian Pebbles ---
 /// </summary>
 public sealed class Day11 : BaseDay
 {
-    private readonly IDictionary<string, long> _starterStoneCounts;
+    private readonly Counter<string> _starterStoneCounts;
     private readonly IDictionary<string, string[]> _cache;
 
     public Day11()
     {
         var line = File.ReadAllText(InputFilePath).Split(' ').ToList();
         // var line = "125 17".Split(' ').ToList();
-        _starterStoneCounts = new Dictionary<string, long>();
+        _starterStoneCounts = new Counter<string>();
         foreach (var stone in line)
-        {
-            if (_starterStoneCounts.TryGetValue(stone, out var count))
-                _starterStoneCounts[stone] = count + 1;
-            else
-                _starterStoneCounts.Add(stone, 1);
-        }
+            _starterStoneCounts.Update(stone);
 
         _cache = new Dictionary<string, string[]>();
     }
@@ -30,32 +27,26 @@ public sealed class Day11 : BaseDay
     public override ValueTask<string> Solve_2() =>
         new($"{StoneCountAfterBlinking(_starterStoneCounts, 75)}"); // Test: 65601038650482
 
-    private long StoneCountAfterBlinking(IDictionary<string, long> stoneCounts, int times)
+    private long StoneCountAfterBlinking(Counter<string> stoneCounts, int times)
     {
         for (var i = 0; i < times; i++)
             stoneCounts = Blink(stoneCounts);
         return stoneCounts.Sum(count => count.Value);
     }
 
-    private Dictionary<string, long> Blink(IDictionary<string, long> stoneCounts)
+    private Counter<string> Blink(Counter<string> stoneCounts)
     {
-        var newStoneCounts = new Dictionary<string, long>();
+        var newStoneCounts = new Counter<string>();
 
         foreach (var kv in stoneCounts)
         {
-            foreach (var stone in Cycle(kv))
-            {
-                if (newStoneCounts.TryGetValue(stone, out var count))
-                    newStoneCounts[stone] = count + kv.Value;
-                else
-                    newStoneCounts.Add(stone, kv.Value);
-            }
+            foreach (var stone in ChangeStone(kv)) newStoneCounts.Update(stone, kv.Value);
         }
 
         return newStoneCounts;
     }
 
-    private string[] Cycle(KeyValuePair<string, long> kv)
+    private string[] ChangeStone(KeyValuePair<string, long> kv)
     {
         if (_cache.TryGetValue(kv.Key, out var cachedResult)) return cachedResult;
 
