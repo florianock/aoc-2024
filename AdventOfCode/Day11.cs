@@ -5,14 +5,14 @@
 /// </summary>
 public sealed class Day11 : BaseDay
 {
-    private readonly Dictionary<string, long> _starterStoneCounts;
-    private readonly Dictionary<string, string[]> _cache;
+    private readonly IDictionary<string, long> _starterStoneCounts;
+    private readonly IDictionary<string, string[]> _cache;
 
     public Day11()
     {
         var line = File.ReadAllText(InputFilePath).Split(' ').ToList();
         // var line = "125 17".Split(' ').ToList();
-        _starterStoneCounts = [];
+        _starterStoneCounts = new Dictionary<string, long>();
         foreach (var stone in line)
         {
             if (_starterStoneCounts.TryGetValue(stone, out var count))
@@ -20,6 +20,7 @@ public sealed class Day11 : BaseDay
             else
                 _starterStoneCounts.Add(stone, 1);
         }
+
         _cache = new Dictionary<string, string[]>();
     }
 
@@ -29,24 +30,25 @@ public sealed class Day11 : BaseDay
     public override ValueTask<string> Solve_2() =>
         new($"{StoneCountAfterBlinking(_starterStoneCounts, 75)}"); // Test: 65601038650482
 
-    private long StoneCountAfterBlinking(Dictionary<string, long> stoneCounts, int times)
+    private long StoneCountAfterBlinking(IDictionary<string, long> stoneCounts, int times)
     {
         for (var i = 0; i < times; i++)
             stoneCounts = Blink(stoneCounts);
         return stoneCounts.Sum(count => count.Value);
     }
 
-    private Dictionary<string, long> Blink(Dictionary<string, long> stoneCounts)
+    private Dictionary<string, long> Blink(IDictionary<string, long> stoneCounts)
     {
         var newStoneCounts = new Dictionary<string, long>();
 
         foreach (var kv in stoneCounts)
         {
-            var result = Cycle(kv);
-            foreach (var stone in result)
+            foreach (var stone in Cycle(kv))
             {
-                if (newStoneCounts.TryGetValue(stone, out var count)) newStoneCounts[stone] = count + kv.Value;
-                else newStoneCounts.Add(stone, kv.Value);
+                if (newStoneCounts.TryGetValue(stone, out var count))
+                    newStoneCounts[stone] = count + kv.Value;
+                else
+                    newStoneCounts.Add(stone, kv.Value);
             }
         }
 
@@ -59,12 +61,9 @@ public sealed class Day11 : BaseDay
 
         string[] result;
         if (long.Parse(kv.Key) == 0)
-        {
             result = ["1"];
-        } else if (kv.Key.Length % 2 != 0)
-        {
+        else if (kv.Key.Length % 2 != 0)
             result = [(long.Parse(kv.Key) * 2024).ToString()];
-        }
         else
         {
             result = [kv.Key[..(kv.Key.Length / 2)], kv.Key[(kv.Key.Length / 2)..]];
