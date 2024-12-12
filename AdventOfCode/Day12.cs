@@ -62,10 +62,8 @@ public sealed class Day12 : BaseDay
         var corners = 0;
         foreach (var (r, c) in region)
         {
-            corners += InsideCorner(-1, -1) + OutsideCorner(-1, -1);
-            corners += InsideCorner(-1, 1) + OutsideCorner(-1, 1);
-            corners += InsideCorner(1, 1) + OutsideCorner(1, 1);
-            corners += InsideCorner(1, -1) + OutsideCorner(1, -1);
+            corners += InsideCorner(-1, -1) + OutsideCorner(-1, -1) + InsideCorner(-1, 1) + OutsideCorner(-1, 1)
+                       + InsideCorner(1, 1) + OutsideCorner(1, 1) + InsideCorner(1, -1) + OutsideCorner(1, -1);
             continue;
 
             int OutsideCorner(int a, int b) => !region.Contains((r + a, c)) && !region.Contains((r, c + b)) ? 1 : 0;
