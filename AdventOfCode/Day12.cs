@@ -19,16 +19,16 @@ public sealed class Day12 : BaseDay
         // _input = "AAAAAA\nAAABBA\nAAABBA\nABBAAA\nABBAAA\nAAAAAA".Split('\n').ToList();
         _input = File.ReadLines(InputFilePath).ToList();
 
-        var visited = new HashSet<(int, int)>();
+        var visited = new bool[_input.Count, _input[0].Length];
         _regions = [];
         for (var r = 0; r < _input.Count; r++)
         {
             for (var c = 0; c < _input[0].Length; c++)
             {
-                if (visited.Contains((r, c))) continue;
+                if (visited[r, c]) continue;
                 var region = FindRegion((r, c));
-                visited.UnionWith(region);
                 _regions.Add(region);
+                foreach (var (a, b) in region) visited[a, b] = true;
             }
         }
     }
@@ -39,15 +39,10 @@ public sealed class Day12 : BaseDay
     public override ValueTask<string> Solve_2() =>
         new($"{_regions.Sum(r => GetPrice(r, true))}"); // Test: 80, 436, 1206, 236, 368
 
-    private int GetPrice(HashSet<(int, int)> region, bool bulkDiscount = false)
-    {
-        var area = region.Count;
-        var perimeter = bulkDiscount ? CountCorners(region) : CountBorders(region);
-        // Console.WriteLine($"Plant {_input[region.First().Item1][region.First().Item2]} (p x a): {perimeter} * {area} = {area * perimeter}");
-        return area * perimeter;
-    }
+    private int GetPrice(HashSet<(int, int)> region, bool bulkDiscount = false) =>
+        region.Count * (bulkDiscount ? CountCorners(region) : CountPerimeter(region));
 
-    private int CountBorders(HashSet<(int, int)> region)
+    private int CountPerimeter(HashSet<(int, int)> region)
     {
         var borders = 0;
         foreach (var (r, c) in region)
