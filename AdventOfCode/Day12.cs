@@ -33,11 +33,11 @@ public sealed class Day12 : BaseDay
         }
     }
 
-    public override ValueTask<string> Solve_1() =>
-        new($"{_regions.Sum(r => GetPrice(r))}"); // Test: 140, 772, 1930, 692, 1184
+    // Test: 140, 772, 1930, 692, 1184
+    public override ValueTask<string> Solve_1() => new($"{_regions.Sum(r => GetPrice(r))}");
 
-    public override ValueTask<string> Solve_2() =>
-        new($"{_regions.Sum(r => GetPrice(r, true))}"); // Test: 80, 436, 1206, 236, 368
+    // Test: 80, 436, 1206, 236, 368
+    public override ValueTask<string> Solve_2() => new($"{_regions.Sum(r => GetPrice(r, true))}");
 
     private int GetPrice(HashSet<(int, int)> region, bool bulkDiscount = false) =>
         region.Count * (bulkDiscount ? CountCorners(region) : CountPerimeter(region));
@@ -62,30 +62,28 @@ public sealed class Day12 : BaseDay
         var corners = 0;
         foreach (var (r, c) in region)
         {
-            var neighbors = Grid.GetNeighbors(r, c); // North, East, South, West
-
             // NW
-            if (region.Contains(neighbors[0]) && region.Contains(neighbors[3]) && !region.Contains((r - 1, c - 1)))
+            if (region.Contains((r - 1, c)) && region.Contains((r, c - 1)) && !region.Contains((r - 1, c - 1)))
                 corners++;
-            else if (!region.Contains(neighbors[0]) && !region.Contains(neighbors[3]))
+            else if (!region.Contains((r - 1, c)) && !region.Contains((r, c - 1)))
                 corners++;
 
             // NE
-            if (region.Contains(neighbors[0]) && region.Contains(neighbors[1]) && !region.Contains((r - 1, c + 1)))
+            if (region.Contains((r - 1, c)) && region.Contains((r, c + 1)) && !region.Contains((r - 1, c + 1)))
                 corners++;
-            else if (!region.Contains(neighbors[0]) && !region.Contains(neighbors[1]))
+            else if (!region.Contains((r - 1, c)) && !region.Contains((r, c + 1)))
                 corners++;
 
             // SE
-            if (region.Contains(neighbors[2]) && region.Contains(neighbors[1]) && !region.Contains((r + 1, c + 1)))
+            if (region.Contains((r + 1, c)) && region.Contains((r, c + 1)) && !region.Contains((r + 1, c + 1)))
                 corners++;
-            else if (!region.Contains(neighbors[2]) && !region.Contains(neighbors[1]))
+            else if (!region.Contains((r + 1, c)) && !region.Contains((r, c + 1)))
                 corners++;
 
             // SW
-            if (region.Contains(neighbors[2]) && region.Contains(neighbors[3]) && !region.Contains((r + 1, c - 1)))
+            if (region.Contains((r + 1, c)) && region.Contains((r, c - 1)) && !region.Contains((r + 1, c - 1)))
                 corners++;
-            else if (!region.Contains(neighbors[2]) && !region.Contains(neighbors[3]))
+            else if (!region.Contains((r + 1, c)) && !region.Contains((r, c - 1)))
                 corners++;
         }
 
