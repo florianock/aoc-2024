@@ -62,29 +62,18 @@ public sealed class Day12 : BaseDay
         var corners = 0;
         foreach (var (r, c) in region)
         {
-            // NW
-            if (region.Contains((r - 1, c)) && region.Contains((r, c - 1)) && !region.Contains((r - 1, c - 1)))
-                corners++;
-            else if (!region.Contains((r - 1, c)) && !region.Contains((r, c - 1)))
-                corners++;
+            corners += InsideCorner(-1, -1) + OutsideCorner(-1, -1);
+            corners += InsideCorner(-1, 1) + OutsideCorner(-1, 1);
+            corners += InsideCorner(1, 1) + OutsideCorner(1, 1);
+            corners += InsideCorner(1, -1) + OutsideCorner(1, -1);
+            continue;
 
-            // NE
-            if (region.Contains((r - 1, c)) && region.Contains((r, c + 1)) && !region.Contains((r - 1, c + 1)))
-                corners++;
-            else if (!region.Contains((r - 1, c)) && !region.Contains((r, c + 1)))
-                corners++;
+            int OutsideCorner(int a, int b) => !region.Contains((r + a, c)) && !region.Contains((r, c + b)) ? 1 : 0;
 
-            // SE
-            if (region.Contains((r + 1, c)) && region.Contains((r, c + 1)) && !region.Contains((r + 1, c + 1)))
-                corners++;
-            else if (!region.Contains((r + 1, c)) && !region.Contains((r, c + 1)))
-                corners++;
-
-            // SW
-            if (region.Contains((r + 1, c)) && region.Contains((r, c - 1)) && !region.Contains((r + 1, c - 1)))
-                corners++;
-            else if (!region.Contains((r + 1, c)) && !region.Contains((r, c - 1)))
-                corners++;
+            int InsideCorner(int a, int b) => region.Contains((r + a, c)) && region.Contains((r, c + b)) &&
+                                              !region.Contains((r + a, c + b))
+                ? 1
+                : 0;
         }
 
         return corners;
