@@ -30,7 +30,7 @@ public sealed class Day04 : BaseDay
             for (var c = 0; c <= maxCol; c++)
             {
                 if (_input[r][c] != 'X') continue;
-                foreach (var direction in Enum.GetValues<Direction>())
+                foreach (var direction in Enum.GetValues<Grid.Direction>())
                 {
                     var matchedCharacters = 1;
                     foreach (var m in Enumerable.Range(1, 3))
@@ -78,16 +78,16 @@ public sealed class Day04 : BaseDay
         return result;
     }
 
-    private static (int, int) Step((int, int) point, Direction direction, int multiplier = 1) => direction switch
+    private static (int, int) Step((int, int) point, Grid.Direction direction, int multiplier = 1) => direction switch
     {
-        Direction.North => (point.Item1 - 1 * multiplier, point.Item2),
-        Direction.NorthEast => (point.Item1 - 1 * multiplier, point.Item2 + 1 * multiplier),
-        Direction.East => (point.Item1, point.Item2 + 1 * multiplier),
-        Direction.SouthEast => (point.Item1 + 1 * multiplier, point.Item2 + 1 * multiplier),
-        Direction.South => (point.Item1 + 1 * multiplier, point.Item2),
-        Direction.SouthWest => (point.Item1 + 1 * multiplier, point.Item2 - 1 * multiplier),
-        Direction.West => (point.Item1, point.Item2 - 1 * multiplier),
-        Direction.NorthWest => (point.Item1 - 1 * multiplier, point.Item2 - 1 * multiplier),
+        Grid.Direction.North => (point.Item1 - 1 * multiplier, point.Item2),
+        Grid.Direction.NorthEast => (point.Item1 - 1 * multiplier, point.Item2 + 1 * multiplier),
+        Grid.Direction.East => (point.Item1, point.Item2 + 1 * multiplier),
+        Grid.Direction.SouthEast => (point.Item1 + 1 * multiplier, point.Item2 + 1 * multiplier),
+        Grid.Direction.South => (point.Item1 + 1 * multiplier, point.Item2),
+        Grid.Direction.SouthWest => (point.Item1 + 1 * multiplier, point.Item2 - 1 * multiplier),
+        Grid.Direction.West => (point.Item1, point.Item2 - 1 * multiplier),
+        Grid.Direction.NorthWest => (point.Item1 - 1 * multiplier, point.Item2 - 1 * multiplier),
         _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
     };
 }

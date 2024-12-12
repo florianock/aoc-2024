@@ -8,8 +8,7 @@ namespace AdventOfCode;
 public class Day06 : BaseDay
 {
     private readonly List<string> _input;
-    private readonly (int, int, Direction) _guard;
-    private readonly List<(int, int)> _obstacles;
+    private readonly (int, int, Grid.Direction) _guard;
     private List<(int, int)> _path;
 
     public Day06()
@@ -18,20 +17,15 @@ public class Day06 : BaseDay
         // _input =
             // "....#.....\n.........#\n..........\n..#.......\n.......#..\n..........\n.#..^.....\n........#.\n#.........\n......#..."
                 // .Split("\n").ToList();
-        _obstacles = [];
         for (var r = 0; r < _input.Count; r++)
         {
             for (var c = 0; c < _input[0].Length; c++)
             {
-                switch (_input[r][c])
+                _guard = _input[r][c] switch
                 {
-                    case '#':
-                        _obstacles.Add((r, c));
-                        break;
-                    case '^':
-                        _guard = (r, c, Direction.North);
-                        break;
-                }
+                    '^' => (r, c, Grid.Direction.North),
+                    _ => _guard
+                };
             }
         }
     }
@@ -45,59 +39,59 @@ public class Day06 : BaseDay
     private int? CountGuardSteps((int, int)? extraObstacle = null)
     {
         var guard = _guard;
-        var result = new List<(int, int, Direction)>();
+        var result = new List<(int, int, Grid.Direction)>();
 
         while (0 <= guard.Item1 && guard.Item1 < _input.Count &&
                0 <= guard.Item2 && guard.Item2 < _input[0].Length)
         {
             result.Add(guard);
-            (int, int, Direction) nextPos;
+            (int, int, Grid.Direction) nextPos;
             switch (guard.Item3)
             {
-                case Direction.North:
-                    nextPos = (guard.Item1 - 1, guard.Item2, Direction.North);
+                case Grid.Direction.North:
+                    nextPos = (guard.Item1 - 1, guard.Item2, Grid.Direction.North);
                     if (0 <= nextPos.Item1 && nextPos.Item1 < _input.Count &&
                         0 <= nextPos.Item2 && nextPos.Item2 < _input[0].Length &&
                         IsObstacle(nextPos.Item1, nextPos.Item2, extraObstacle))
                     {
-                        nextPos = (guard.Item1, guard.Item2, Direction.East);
+                        nextPos = (guard.Item1, guard.Item2, Grid.Direction.East);
                     }
 
                     break;
-                case Direction.East:
-                    nextPos = (guard.Item1, guard.Item2 + 1, Direction.East);
+                case Grid.Direction.East:
+                    nextPos = (guard.Item1, guard.Item2 + 1, Grid.Direction.East);
                     if (0 <= nextPos.Item1 && nextPos.Item1 < _input.Count &&
                         0 <= nextPos.Item2 && nextPos.Item2 < _input[0].Length &&
                         IsObstacle(nextPos.Item1, nextPos.Item2, extraObstacle))
                     {
-                        nextPos = (guard.Item1, guard.Item2, Direction.South);
+                        nextPos = (guard.Item1, guard.Item2, Grid.Direction.South);
                     }
 
                     break;
-                case Direction.South:
-                    nextPos = (guard.Item1 + 1, guard.Item2, Direction.South);
+                case Grid.Direction.South:
+                    nextPos = (guard.Item1 + 1, guard.Item2, Grid.Direction.South);
                     if (0 <= nextPos.Item1 && nextPos.Item1 < _input.Count &&
                         0 <= nextPos.Item2 && nextPos.Item2 < _input[0].Length &&
                         IsObstacle(nextPos.Item1, nextPos.Item2, extraObstacle))
                     {
-                        nextPos = (guard.Item1, guard.Item2, Direction.West);
+                        nextPos = (guard.Item1, guard.Item2, Grid.Direction.West);
                     }
 
                     break;
-                case Direction.West:
-                    nextPos = (guard.Item1, guard.Item2 - 1, Direction.West);
+                case Grid.Direction.West:
+                    nextPos = (guard.Item1, guard.Item2 - 1, Grid.Direction.West);
                     if (0 <= nextPos.Item1 && nextPos.Item1 < _input.Count &&
                         0 <= nextPos.Item2 && nextPos.Item2 < _input[0].Length &&
                         IsObstacle(nextPos.Item1, nextPos.Item2, extraObstacle))
                     {
-                        nextPos = (guard.Item1, guard.Item2, Direction.North);
+                        nextPos = (guard.Item1, guard.Item2, Grid.Direction.North);
                     }
 
                     break;
-                case Direction.NorthEast:
-                case Direction.SouthEast:
-                case Direction.SouthWest:
-                case Direction.NorthWest:
+                case Grid.Direction.NorthEast:
+                case Grid.Direction.SouthEast:
+                case Grid.Direction.SouthWest:
+                case Grid.Direction.NorthWest:
                 default:
                     throw new InvalidOperationException(nameof(guard.Item3));
             }
