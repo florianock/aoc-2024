@@ -48,7 +48,7 @@ public sealed partial class Day13 : BaseDay
             })
             .Sum(result => result is null ? 0 : 3 * result.A + result.B);
 
-    private static ButtonPressesResult? GetMinimumButtonPressesToWin(Machine machine)
+    private static ButtonPresses? GetMinimumButtonPressesToWin(Machine machine)
     {
         var (ax, ay) = machine.A;
         var (bx, by) = machine.B;
@@ -60,7 +60,7 @@ public sealed partial class Day13 : BaseDay
 
         if (dx % d != 0 || dy % d != 0) return null;
 
-        return new ButtonPressesResult(dx / d, dy / d);
+        return new ButtonPresses(dx / d, dy / d);
     }
 
     [GeneratedRegex(@"(\d+)")]
@@ -72,5 +72,5 @@ public sealed partial class Day13 : BaseDay
 
     private record Machine(Button A, Button B, Prize Prize);
     
-    private record ButtonPressesResult(long A, long B);
+    private record ButtonPresses(long A, long B);
 }
