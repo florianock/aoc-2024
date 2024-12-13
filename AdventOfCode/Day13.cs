@@ -7,7 +7,7 @@ namespace AdventOfCode;
 /// </summary>
 public sealed partial class Day13 : BaseDay
 {
-    private readonly List<List<(long, long)>> _clawMachines;
+    private readonly List<Machine> _clawMachines;
 
     public Day13()
     {
@@ -19,10 +19,14 @@ public sealed partial class Day13 : BaseDay
         _clawMachines = [];
         foreach (var block in input)
         {
-            List<long> machine = [];
+            List<long> numbers = [];
             foreach (Match match in ClawMachineRegex().Matches(block))
-                machine.Add(long.Parse(match.Value));
-            _clawMachines.Add(machine.Chunk(2).Select(arr => (arr[0], arr[1])).ToList());
+                numbers.Add(long.Parse(match.Value));
+            _clawMachines.Add(new Machine(
+                new Button(numbers[0], numbers[1]),
+                new Button(numbers[2], numbers[3]),
+                new Prize(numbers[4], numbers[5]))
+            );
         }
     }
 
@@ -32,15 +36,14 @@ public sealed partial class Day13 : BaseDay
 
     private long FewestTokensToWinAll(bool fixUnitConversionError = false) =>
         _clawMachines
-            .Select(machine => GetMinimumTokensToWin(machine[0], machine[1], machine[2], fixUnitConversionError))
+            .Select(machine => GetMinimumTokensToWin(machine, fixUnitConversionError))
             .Sum(result => result is null ? 0 : 3 * result.Value.Item1 + result.Value.Item2);
 
-    private static (long, long)? GetMinimumTokensToWin((long, long) a, (long, long) b, (long, long) prize,
-        bool fixUnitConversionError = false)
+    private static (long, long)? GetMinimumTokensToWin(Machine machine, bool fixUnitConversionError = false)
     {
-        var (ax, ay) = a;
-        var (bx, by) = b;
-        var (px, py) = prize;
+        var (ax, ay) = machine.A;
+        var (bx, by) = machine.B;
+        var (px, py) = machine.Prize;
         if (fixUnitConversionError)
         {
             px += 10_000_000_000_000;
@@ -58,4 +61,10 @@ public sealed partial class Day13 : BaseDay
 
     [GeneratedRegex(@"(\d+)")]
     private static partial Regex ClawMachineRegex();
+
+    private record Button(long X, long Y);
+
+    private record Prize(long X, long Y);
+
+    private record Machine(Button A, Button B, Prize Prize);
 }
