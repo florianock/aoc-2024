@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿#nullable enable
+using System.Text.RegularExpressions;
 
 namespace AdventOfCode;
 
@@ -38,16 +39,16 @@ public sealed partial class Day13 : BaseDay
         _clawMachines
             .Select(machine =>
             {
-                if (!fixUnitConversionError) return GetMinimumTokensToWin(machine);
+                if (!fixUnitConversionError) return GetMinimumButtonPressesToWin(machine);
                 const long adjustment = 10_000_000_000_000;
-                return GetMinimumTokensToWin(machine with
+                return GetMinimumButtonPressesToWin(machine with
                 {
                     Prize = new Prize(X: machine.Prize.X + adjustment, Y: machine.Prize.Y + adjustment)
                 });
             })
-            .Sum(result => result is null ? 0 : 3 * result.Value.Item1 + result.Value.Item2);
+            .Sum(result => result is null ? 0 : 3 * result.A + result.B);
 
-    private static (long, long)? GetMinimumTokensToWin(Machine machine)
+    private static ButtonPressesResult? GetMinimumButtonPressesToWin(Machine machine)
     {
         var (ax, ay) = machine.A;
         var (bx, by) = machine.B;
@@ -59,7 +60,7 @@ public sealed partial class Day13 : BaseDay
 
         if (dx % d != 0 || dy % d != 0) return null;
 
-        return (dx / d, dy / d);
+        return new ButtonPressesResult(dx / d, dy / d);
     }
 
     [GeneratedRegex(@"(\d+)")]
@@ -70,4 +71,6 @@ public sealed partial class Day13 : BaseDay
     private record Prize(long X, long Y);
 
     private record Machine(Button A, Button B, Prize Prize);
+    
+    private record ButtonPressesResult(long A, long B);
 }
