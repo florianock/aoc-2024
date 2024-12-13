@@ -49,7 +49,7 @@ public sealed partial class Day13 : BaseDay
 
         var d = ax * by - ay * bx;
         var dx = px * by - py * bx;
-        var dy = ax * py - ay * px;
+        var dy = py * ax - px * ay;
 
         if (dx % d != 0 || dy % d != 0) return null;
 
