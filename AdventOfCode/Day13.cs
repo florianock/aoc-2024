@@ -18,11 +18,9 @@ public sealed partial class Day13 : BaseDay
         var input = File.ReadAllText(InputFilePath).Split("\n\n").ToList();
 
         _clawMachines = [];
-        foreach (var block in input)
+        foreach (var numbers in input.Select(block =>
+                     ClawMachineRegex().Matches(block).Select(m => long.Parse(m.Value)).ToList()))
         {
-            List<long> numbers = [];
-            foreach (Match match in ClawMachineRegex().Matches(block))
-                numbers.Add(long.Parse(match.Value));
             _clawMachines.Add(new Machine(
                 new Button(numbers[0], numbers[1]),
                 new Button(numbers[2], numbers[3]),
@@ -71,6 +69,6 @@ public sealed partial class Day13 : BaseDay
     private record Prize(long X, long Y);
 
     private record Machine(Button A, Button B, Prize Prize);
-    
+
     private record ButtonPresses(long A, long B);
 }
