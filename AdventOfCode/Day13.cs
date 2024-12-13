@@ -11,10 +11,10 @@ public sealed partial class Day13 : BaseDay
 
     public Day13()
     {
-        // var input =
-        // "Button A: X+94, Y+34\nButton B: X+22, Y+67\nPrize: X=8400, Y=5400\n\nButton A: X+26, Y+66\nButton B: X+67, Y+21\nPrize: X=12748, Y=12176\n\nButton A: X+17, Y+86\nButton B: X+84, Y+37\nPrize: X=7870, Y=6450\n\nButton A: X+69, Y+23\nButton B: X+27, Y+71\nPrize: X=18641, Y=10279"
-        // .Split("\n\n").ToList();
-        var input = File.ReadAllText(InputFilePath).Split("\n\n").ToList();
+        var input =
+            "Button A: X+94, Y+34\nButton B: X+22, Y+67\nPrize: X=8400, Y=5400\n\nButton A: X+26, Y+66\nButton B: X+67, Y+21\nPrize: X=12748, Y=12176\n\nButton A: X+17, Y+86\nButton B: X+84, Y+37\nPrize: X=7870, Y=6450\n\nButton A: X+69, Y+23\nButton B: X+27, Y+71\nPrize: X=18641, Y=10279"
+                .Split("\n\n").ToList();
+        // var input = File.ReadAllText(InputFilePath).Split("\n\n").ToList();
 
         _clawMachines = [];
         foreach (var block in input)
@@ -36,19 +36,23 @@ public sealed partial class Day13 : BaseDay
 
     private long FewestTokensToWinAll(bool fixUnitConversionError = false) =>
         _clawMachines
-            .Select(machine => GetMinimumTokensToWin(machine, fixUnitConversionError))
+            .Select(machine =>
+            {
+                if (!fixUnitConversionError) return GetMinimumTokensToWin(machine);
+                const long adjustment = 10_000_000_000_000;
+                machine = machine with
+                {
+                    Prize = new Prize(X: machine.Prize.X + adjustment, Y: machine.Prize.Y + adjustment)
+                };
+                return GetMinimumTokensToWin(machine);
+            })
             .Sum(result => result is null ? 0 : 3 * result.Value.Item1 + result.Value.Item2);
 
-    private static (long, long)? GetMinimumTokensToWin(Machine machine, bool fixUnitConversionError = false)
+    private static (long, long)? GetMinimumTokensToWin(Machine machine)
     {
         var (ax, ay) = machine.A;
         var (bx, by) = machine.B;
         var (px, py) = machine.Prize;
-        if (fixUnitConversionError)
-        {
-            px += 10_000_000_000_000;
-            py += 10_000_000_000_000;
-        }
 
         var d = ax * by - ay * bx;
         var dx = px * by - py * bx;
