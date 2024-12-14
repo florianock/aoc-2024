@@ -31,29 +31,11 @@ public sealed partial class Day14 : BaseDay
     public override ValueTask<string> Solve_1() =>
         new($"{GetTotalSafetyFactor(_robots.Select(r => Move(r, 100)))}"); // Test: 12
 
-    public override ValueTask<string> Solve_2() => new($"{FindEasterEgg(_robots)}");
-
-    private int FindEasterEgg(List<Robot> robots)
-    {
-        var result = -1;
-        var x = robots.Count * _width * _height;
-        for (var seconds = 1; seconds < x; seconds++)
-        {
-            var newPositions = robots.Select(r => Move(r, seconds)).ToList();
-            if (!FormsChristmasTree(newPositions)) continue;
-            result = seconds;
-            // Print(newPositions, seconds);
-            break;
-        }
-
-        return result;
-    }
+    public override ValueTask<string> Solve_2() => new($"{FindEasterEgg()}");
 
     private Position Move(Robot robot, int seconds) =>
         new(((robot.P.Item1 + robot.V.Item1 * seconds) % _width + _width) % _width,
             ((robot.P.Item2 + robot.V.Item2 * seconds) % _height + _height) % _height);
-
-    private static bool FormsChristmasTree(List<Position> positions) => positions.Distinct().Count() == positions.Count;
 
     private long GetTotalSafetyFactor(IEnumerable<Position> positions) =>
         CountQuadrants(positions).Aggregate(1L, (agg, cur) => agg * cur);
@@ -79,6 +61,24 @@ public sealed partial class Day14 : BaseDay
 
         return quadrants;
     }
+
+    private int FindEasterEgg()
+    {
+        var result = -1;
+        var x = _robots.Count * _width * _height;
+        for (var seconds = 1; seconds < x; seconds++)
+        {
+            var newPositions = _robots.Select(r => Move(r, seconds)).ToList();
+            if (!FormsChristmasTree(newPositions)) continue;
+            result = seconds;
+            // Print(newPositions, seconds);
+            break;
+        }
+
+        return result;
+    }
+
+    private static bool FormsChristmasTree(List<Position> positions) => positions.Distinct().Count() == positions.Count;
 
     private void Print(List<Position> positions, int t)
     {
