@@ -78,14 +78,7 @@ public sealed class Day15 : BaseDay
         if (r < 0 || warehouse.Grid.GetLength(0) <= r || c < 0 || warehouse.Grid.GetLength(1) <= c)
             throw new IndexOutOfRangeException($"({r},{c})");
 
-        var nextPos = d switch
-        {
-            '^' => (r - 1, c),
-            '>' => (r, c + 1),
-            'v' => (r + 1, c),
-            '<' => (r, c - 1),
-            _ => throw new ArgumentOutOfRangeException(nameof(d), d, null)
-        };
+        var nextPos = NextPosition(pos, d);
 
         return warehouse.Grid[nextPos.Item1, nextPos.Item2] switch
         {
@@ -109,42 +102,21 @@ public sealed class Day15 : BaseDay
         if (r < 0 || warehouse.Grid.GetLength(0) <= r || c < 0 || warehouse.Grid.GetLength(1) <= c)
             throw new IndexOutOfRangeException($"({r},{c})");
 
-        var nextPos = d switch
-        {
-            '^' => (r - 1, c),
-            '>' => (r, c + 1),
-            'v' => (r + 1, c),
-            '<' => (r, c - 1),
-            _ => throw new ArgumentOutOfRangeException(nameof(d), d, null)
-        };
+        var nextPos = NextPosition(pos, d);
 
         switch (warehouse.Grid[nextPos.Item1, nextPos.Item2])
         {
-            case '.':
-                break;
-            case 'O':
-                warehouse = MakeMove(nextPos, d, warehouse);
-                break;
+            case '.': break;
+            case 'O': warehouse = MakeMove(nextPos, d, warehouse); break;
             case '[':
-                if (d is 'v' or '^')
-                {
-                    warehouse = MakeMove((nextPos.Item1, nextPos.Item2 + 1), d, warehouse);
-                }
-
+                if (d is 'v' or '^') warehouse = MakeMove((nextPos.Item1, nextPos.Item2 + 1), d, warehouse);
                 warehouse = MakeMove(nextPos, d, warehouse);
-
                 break;
             case ']':
-                if (d is 'v' or '^')
-                {
-                    warehouse = MakeMove((nextPos.Item1, nextPos.Item2 - 1), d, warehouse);
-                }
-
+                if (d is 'v' or '^') warehouse = MakeMove((nextPos.Item1, nextPos.Item2 - 1), d, warehouse);
                 warehouse = MakeMove(nextPos, d, warehouse);
-
                 break;
-            default:
-                throw new ArgumentOutOfRangeException($"{nameof(nextPos)}: {nextPos}");
+            default: throw new ArgumentOutOfRangeException($"{nameof(nextPos)}: {nextPos}");
         }
 
         warehouse = DoIt(r, c, nextPos.Item1, nextPos.Item2, warehouse);
@@ -174,6 +146,15 @@ public sealed class Day15 : BaseDay
             return wh;
         }
     }
+
+    private static (int, int) NextPosition((int, int) pos, char d) => d switch
+    {
+        '^' => (pos.Item1 - 1, pos.Item2),
+        '>' => (pos.Item1, pos.Item2 + 1),
+        'v' => (pos.Item1 + 1, pos.Item2),
+        '<' => (pos.Item1, pos.Item2 - 1),
+        _ => throw new ArgumentOutOfRangeException(nameof(d), d, null)
+    };
 
     private static long Gps(int r, int c) => 100 * r + c;
 
