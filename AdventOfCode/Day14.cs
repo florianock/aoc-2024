@@ -31,20 +31,20 @@ public sealed partial class Day14 : BaseDay
     public override ValueTask<string> Solve_1() =>
         new($"{GetTotalSafetyFactor(_robots.Select(r => Move(r, 100)))}"); // Test: 12
 
-    public override ValueTask<string> Solve_2() => new($"{FindEasterEgg()}");
+    public override ValueTask<string> Solve_2() => new($"{FindChristmasTree()}");
 
-    private Position Move(Robot robot, int seconds) =>
-        new(((robot.P.Item1 + robot.V.Item1 * seconds) % _width + _width) % _width,
-            ((robot.P.Item2 + robot.V.Item2 * seconds) % _height + _height) % _height);
+    private Position Move(Robot robot, int t) =>
+        new(((robot.P.Item1 + robot.V.Item1 * t) % _width + _width) % _width,
+            ((robot.P.Item2 + robot.V.Item2 * t) % _height + _height) % _height);
 
     private long GetTotalSafetyFactor(IEnumerable<Position> positions) =>
         CountQuadrants(positions).Aggregate(1L, (agg, cur) => agg * cur);
 
-    private long[] CountQuadrants(IEnumerable<Position> positions)
+    private int[] CountQuadrants(IEnumerable<Position> positions)
     {
         var middleX = _width / 2;
         var middleY = _height / 2;
-        var quadrants = new long[4];
+        var quadrants = new int[4];
         foreach (var pos in positions.Where(p => p.X != middleX && p.Y != middleY))
         {
             if (pos.X > middleX)
@@ -62,23 +62,22 @@ public sealed partial class Day14 : BaseDay
         return quadrants;
     }
 
-    private int FindEasterEgg()
+    private int FindChristmasTree()
     {
-        var result = -1;
-        var x = _robots.Count * _width * _height;
-        for (var seconds = 1; seconds < x; seconds++)
+        // The Christmas tree has lowest entropy and therefore much lower TSF
+        var maxCycle = _width * _height;
+        var totalSafetyFactors = new long[maxCycle];
+        for (var t = 0; t < maxCycle; t++)
         {
-            var newPositions = _robots.Select(r => Move(r, seconds)).ToList();
-            if (!FormsChristmasTree(newPositions)) continue;
-            result = seconds;
-            // Print(newPositions, seconds);
-            break;
+            var newPositions = _robots.Select(r => Move(r, t)).ToList();
+            totalSafetyFactors[t] = GetTotalSafetyFactor(newPositions);
+            // Print(newPositions, t);
+            // var answer = Console.ReadKey();
+            // if (answer.KeyChar == 'q') break;
         }
 
-        return result;
+        return totalSafetyFactors.Index().MinBy(s => s.Item).Index;
     }
-
-    private static bool FormsChristmasTree(List<Position> positions) => positions.Distinct().Count() == positions.Count;
 
     private void Print(List<Position> positions, int t)
     {
@@ -111,7 +110,7 @@ public sealed partial class Day14 : BaseDay
     [GeneratedRegex(@"p=(-?[0-9]+),(-?[0-9]+) v=(-?[0-9]+),(-?[0-9]+)")]
     private static partial Regex RobotRegex();
 
-    public record Position(int X, int Y);
+    private record Position(int X, int Y);
 
-    public record Robot((int, int) P, (int, int) V);
+    private record Robot((int, int) P, (int, int) V);
 }
