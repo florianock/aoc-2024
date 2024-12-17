@@ -108,7 +108,7 @@ public class Day17 : BaseDay
 
             if (_out.Count == _program.Length && _out.SequenceEqual(_program))
             {
-                // Console.WriteLine($"Solved in {iterations} iterations.");
+                // Console.WriteLine($"{a} => {string.Join(",", _out)}. Solved in {iterations} iterations.");
                 return a;
             }
 
