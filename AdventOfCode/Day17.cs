@@ -16,16 +16,16 @@ public class Day17 : BaseDay
 
     public Day17()
     {
-        // _input = File.ReadAllText(InputFilePath).Split("\n\n");
+        _input = File.ReadAllText(InputFilePath).Split("\n\n");
         // _input = "Register A: 729\nRegister B: 0\nRegister C: 0\n\nProgram: 0,1,5,4,3,0".Split("\n\n").ToArray();
-        _input = "Register A: 2024\nRegister B: 0\nRegister C: 0\n\nProgram: 0,3,5,4,3,0".Split("\n\n").ToArray();
+        // _input = "Register A: 2024\nRegister B: 0\nRegister C: 0\n\nProgram: 0,3,5,4,3,0".Split("\n\n").ToArray();
     }
 
     public override ValueTask<string> Solve_1() => new($"{Run()}"); // Test: "4,6,3,5,6,3,5,2,1,0"
 
-    public override ValueTask<string> Solve_2() => new($"{BruteForce()}"); // Test: 117440
+    public override ValueTask<string> Solve_2() => new($"{SmartForce()}"); // Test: 117440
 
-    private ulong BruteForce()
+    private ulong SmartForce()
     {
         var a = 1UL;
         var n = 1;
