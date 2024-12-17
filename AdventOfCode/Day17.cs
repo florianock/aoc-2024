@@ -99,9 +99,9 @@ public class Day17 : BaseDay
     private long MatchOutputToProgram()
     {
         var a = 1L;
-        var matchingBytes = 1;
+        var digitsToMatch = 1;
         var iterations = 1;
-        while (a < long.MaxValue && matchingBytes <= _program.Length)
+        while (a < long.MaxValue && digitsToMatch <= _program.Length)
         {
             iterations++;
             Run(a);
@@ -112,11 +112,11 @@ public class Day17 : BaseDay
                 return a;
             }
 
-            if (_out.SequenceEqual(_program.TakeLast(matchingBytes)))
+            if (_out.SequenceEqual(_program.TakeLast(digitsToMatch)))
             {
                 // Console.WriteLine($"{a} => {string.Join(",", _out)}. Jumping to a = {a * 8}");
                 a *= 8;
-                matchingBytes += 1;
+                digitsToMatch += 1;
                 continue;
             }
 
