@@ -6,9 +6,9 @@
 public class Day17 : BaseDay
 {
     private int _pointer;
-    private ulong _registerA;
-    private ulong _registerB;
-    private ulong _registerC;
+    private long _registerA;
+    private long _registerB;
+    private long _registerC;
     private byte[] _program;
     private List<byte> _out;
 
@@ -25,13 +25,12 @@ public class Day17 : BaseDay
 
     public override ValueTask<string> Solve_2() => new($"{SmartForce()}"); // Test: 117440
 
-    private ulong SmartForce()
+    private long SmartForce()
     {
-        var a = 1UL;
+        var a = 1L;
         var n = 1;
-        while (a < ulong.MaxValue && n <= _program.Length)
+        while (a < long.MaxValue && n <= _program.Length)
         {
-            
             Run(a);
 
             if (_out.Count == _program.Length && _out.SequenceEqual(_program))
@@ -50,10 +49,10 @@ public class Day17 : BaseDay
             a++;
         }
 
-        return 0UL;
+        return 0L;
     }
 
-    private string Run(ulong a = 0UL)
+    private string Run(long a = 0L)
     {
         Initialize(a);
         while (0 <= _pointer && _pointer < _program.Length - 1)
@@ -72,9 +71,9 @@ public class Day17 : BaseDay
         var increasePointer = true;
         switch (opcode)
         {
-            case 0: _registerA = (ulong)(_registerA / Math.Pow(2, Combo(operand))); break;
+            case 0: _registerA = (long)(_registerA / Math.Pow(2, Combo(operand))); break;
             case 1: _registerB ^= operand; break;
-            case 2: _registerB = (ulong)(Combo(operand) % 8); break;
+            case 2: _registerB = (long)(Combo(operand) % 8); break;
             case 3:
                 if (_registerA != 0)
                 {
@@ -84,11 +83,9 @@ public class Day17 : BaseDay
 
                 break;
             case 4: _registerB ^= _registerC; break;
-            case 5:
-                _out.Add((byte)(Combo(operand) % 8));
-                break;
-            case 6: _registerB = (ulong)(_registerA / Math.Pow(2, Combo(operand))); break;
-            case 7: _registerC = (ulong)(_registerA / Math.Pow(2, Combo(operand))); break;
+            case 5: _out.Add((byte)(Combo(operand) % 8)); break;
+            case 6: _registerB = (long)(_registerA / Math.Pow(2, Combo(operand))); break;
+            case 7: _registerC = (long)(_registerA / Math.Pow(2, Combo(operand))); break;
         }
 
         if (increasePointer) _pointer += 2;
@@ -108,11 +105,11 @@ public class Day17 : BaseDay
         }
     }
 
-    private void Initialize(ulong a = 0)
+    private void Initialize(long a = 0)
     {
         foreach (var register in _input[0].Split('\n'))
         {
-            var n = ulong.Parse(string.Join("", register.Where(char.IsDigit)));
+            var n = long.Parse(string.Join("", register.Where(char.IsDigit)));
             switch (register[9])
             {
                 case 'A': _registerA = a == 0 ? n : a; break;
