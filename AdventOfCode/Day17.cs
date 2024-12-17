@@ -23,34 +23,27 @@ public class Day17 : BaseDay
 
     public override ValueTask<string> Solve_1() => new($"{Run()}"); // Test: "4,6,3,5,6,3,5,2,1,0"
 
-    public override ValueTask<string> Solve_2() => new($"{SmartForce()}"); // Test: 117440
+    public override ValueTask<string> Solve_2() => new($"{MatchOutputToProgram()}"); // Test: 117440
 
-    private long SmartForce()
+    private void Initialize(long a = 0)
     {
-        var a = 1L;
-        var n = 1;
-        while (a < long.MaxValue && n <= _program.Length)
+        foreach (var register in _input[0].Split('\n'))
         {
-            Run(a);
-
-            if (_out.Count == _program.Length && _out.SequenceEqual(_program))
+            var n = long.Parse(string.Join("", register.Where(char.IsDigit)));
+            switch (register[9])
             {
-                return a;
+                case 'A': _registerA = a == 0 ? n : a; break;
+                case 'B': _registerB = n; break;
+                case 'C': _registerC = n; break;
             }
-
-            if (_out.Count > n - 1 && _program.Length > n - 1 && _out.SequenceEqual(_program.TakeLast(n)))
-            {
-                // Console.WriteLine($"{a} => {string.Join(",", _out)}. Jumping to a = {a * 8}");
-                a *= 8;
-                n += 1;
-                continue;
-            }
-
-            a++;
         }
 
-        return 0L;
+        _program = _input[1][9..].Split(',').Select(byte.Parse).ToArray();
+        _pointer = 0;
+        _out = [];
     }
+
+    private (byte opcode, byte operand) Read() => (_program[_pointer], _program[_pointer + 1]);
 
     private string Run(long a = 0L)
     {
@@ -63,8 +56,6 @@ public class Day17 : BaseDay
 
         return string.Join(",", _out);
     }
-
-    private (byte opcode, byte operand) Read() => (_program[_pointer], _program[_pointer + 1]);
 
     private void Execute(byte opcode, byte operand)
     {
@@ -105,21 +96,33 @@ public class Day17 : BaseDay
         }
     }
 
-    private void Initialize(long a = 0)
+    private long MatchOutputToProgram()
     {
-        foreach (var register in _input[0].Split('\n'))
+        var a = 1L;
+        var matchingBytes = 1;
+        var iterations = 1;
+        while (a < long.MaxValue && matchingBytes <= _program.Length)
         {
-            var n = long.Parse(string.Join("", register.Where(char.IsDigit)));
-            switch (register[9])
+            iterations++;
+            Run(a);
+
+            if (_out.Count == _program.Length && _out.SequenceEqual(_program))
             {
-                case 'A': _registerA = a == 0 ? n : a; break;
-                case 'B': _registerB = n; break;
-                case 'C': _registerC = n; break;
+                // Console.WriteLine($"Solved in {iterations} iterations.");
+                return a;
             }
+
+            if (_out.SequenceEqual(_program.TakeLast(matchingBytes)))
+            {
+                // Console.WriteLine($"{a} => {string.Join(",", _out)}. Jumping to a = {a * 8}");
+                a *= 8;
+                matchingBytes += 1;
+                continue;
+            }
+
+            a++;
         }
 
-        _program = _input[1][9..].Split(',').Select(byte.Parse).ToArray();
-        _pointer = 0;
-        _out = [];
+        return 0L;
     }
 }
