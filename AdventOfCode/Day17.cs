@@ -25,6 +25,18 @@ public class Day17 : BaseDay
 
     public override ValueTask<string> Solve_2() => new($"{MatchOutputToProgram()}"); // Test: 117440
 
+    private string Run(long a = 0L)
+    {
+        Initialize(a);
+        while (0 <= _pointer && _pointer < _program.Length - 1)
+        {
+            var (opcode, operand) = Read();
+            Execute(opcode, operand);
+        }
+
+        return string.Join(",", _out);
+    }
+
     private void Initialize(long a = 0)
     {
         foreach (var register in _input[0].Split('\n'))
@@ -44,18 +56,6 @@ public class Day17 : BaseDay
     }
 
     private (byte opcode, byte operand) Read() => (_program[_pointer], _program[_pointer + 1]);
-
-    private string Run(long a = 0L)
-    {
-        Initialize(a);
-        while (0 <= _pointer && _pointer < _program.Length - 1)
-        {
-            var (opcode, operand) = Read();
-            Execute(opcode, operand);
-        }
-
-        return string.Join(",", _out);
-    }
 
     private void Execute(byte opcode, byte operand)
     {
