@@ -3,58 +3,54 @@
 /// <summary>
 /// --- Day 18: RAM Run ---
 /// </summary>
-public class Day18 : BaseDay
+public sealed class Day18 : BaseDay
 {
     private readonly int _width;
     private readonly int _height;
     private readonly List<Point> _walls;
     private readonly char[][] _grid;
-    private readonly int _time;
 
     public Day18()
     {
         var input = File.ReadLines(InputFilePath).ToList();
         // var input =
-            // "5,4\n4,2\n4,5\n3,0\n2,1\n6,3\n2,4\n1,5\n0,6\n3,3\n2,6\n5,1\n1,2\n5,5\n2,5\n6,5\n1,4\n0,4\n6,4\n1,1\n6,1\n1,0\n0,5\n1,6\n2,0"
-                // .Split("\n").ToList();
+        // "5,4\n4,2\n4,5\n3,0\n2,1\n6,3\n2,4\n1,5\n0,6\n3,3\n2,6\n5,1\n1,2\n5,5\n2,5\n6,5\n1,4\n0,4\n6,4\n1,1\n6,1\n1,0\n0,5\n1,6\n2,0"
+        // .Split("\n").ToList();
         _width = input.Count < 30 ? 7 : 71;
         _height = input.Count < 30 ? 7 : 71;
-        _time = input.Count < 30 ? 12 : 1024;
+        var time = input.Count < 30 ? 12 : 1024;
         _walls = input
             .Select(line => line.Split(','))
             .Select(arr => new Point(int.Parse(arr[0]), int.Parse(arr[1])))
             .ToList();
         _grid = new char[_height][];
-        var wallsAtTime = _walls[.._time];
+        var wallsAtTime = _walls[..time];
         for (var y = 0; y < _height; y++)
         {
             var row = new char[_width];
             for (var x = 0; x < _width; x++)
             {
-                row[x] = wallsAtTime.Contains(new Point(x, y)) ? '#' : '.';
+                row[x] = '.';
             }
 
             _grid[y] = row;
         }
+
+        foreach (var wall in wallsAtTime) _grid[wall.Y][wall.X] = '#';
     }
 
-    public override ValueTask<string> Solve_1() => new($"{PathToEnd().Count}"); // Test: 22
+    public override ValueTask<string> Solve_1() =>
+        new(
+            $"{ShortestPath(new Point(0, 0), new Point(_width - 1, _height - 1), _grid, ChebyshevDistance).Count}"); // Test: 22
 
     public override ValueTask<string> Solve_2() => new($"{GetCutOffPoint()}"); // Test: 6,1
-
-    private HashSet<Point> PathToEnd()
-    {
-        var start = new Point(0, 0);
-        var end = new Point(_width - 1, _height - 1);
-        return ShortestPath(start, end, _grid, ChebyshevDistance);
-    }
 
     private string GetCutOffPoint()
     {
         const int wall = 100;
         const int flooded = 10;
         const int empty = 0;
-        
+
         var map = new int[_height][];
         for (var y = 0; y < _height; y++)
         {
@@ -74,11 +70,10 @@ public class Day18 : BaseDay
 
         foreach (var w in Enumerable.Reverse(_walls))
         {
-            map[w.Y][w.X] = empty;
             if (GetNeighbors(w).Any(n => map[n.Y][n.X] == flooded))
-            {
                 FloodFill(w);
-            }
+            else
+                map[w.Y][w.X] = empty;
 
             if (map[end.Y][end.X] == flooded) return $"{w.X},{w.Y}";
         }
