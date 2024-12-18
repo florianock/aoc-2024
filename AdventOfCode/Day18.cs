@@ -13,10 +13,10 @@ public class Day18 : BaseDay
 
     public Day18()
     {
-        // var input = File.ReadLines(InputFilePath).ToList();
-        var input =
-            "5,4\n4,2\n4,5\n3,0\n2,1\n6,3\n2,4\n1,5\n0,6\n3,3\n2,6\n5,1\n1,2\n5,5\n2,5\n6,5\n1,4\n0,4\n6,4\n1,1\n6,1\n1,0\n0,5\n1,6\n2,0"
-                .Split("\n").ToList();
+        var input = File.ReadLines(InputFilePath).ToList();
+        // var input =
+            // "5,4\n4,2\n4,5\n3,0\n2,1\n6,3\n2,4\n1,5\n0,6\n3,3\n2,6\n5,1\n1,2\n5,5\n2,5\n6,5\n1,4\n0,4\n6,4\n1,1\n6,1\n1,0\n0,5\n1,6\n2,0"
+                // .Split("\n").ToList();
         _width = input.Count < 30 ? 7 : 71;
         _height = input.Count < 30 ? 7 : 71;
         _time = input.Count < 30 ? 12 : 1024;
@@ -46,7 +46,8 @@ public class Day18 : BaseDay
     {
         var start = new Point(0, 0);
         var end = new Point(_width - 1, _height - 1);
-        return AStar(start, end, _grid, ManhattanDistance);
+        // TODO Flood fill might actually work better
+        return ShortestPath(start, end, _grid, ChebyshevDistance);
     }
 
     private string GetCutOffPoint()
@@ -65,12 +66,12 @@ public class Day18 : BaseDay
         return "-1,-1";
     }
 
-    private static HashSet<Point> AStar(Point start, Point goal, char[][] grid, Func<Point, Point, int> h)
+    private static HashSet<Point> ShortestPath(Point start, Point goal, char[][] grid, Func<Point, Point, int> h = null)
     {
         var frontier = new PriorityQueue<Point, int>();
         var cameFrom = new Dictionary<Point, (Point, int)>();
         var gScore = new Dictionary<Point, int> { { start, 0 } };
-        var fScore = new Dictionary<Point, int> { { start, h(start, goal) } };
+        var fScore = new Dictionary<Point, int> { { start, h?.Invoke(start, goal) ?? 1 } };
         frontier.Enqueue(start, 0);
 
         while (frontier.Count > 0)
@@ -87,8 +88,8 @@ public class Day18 : BaseDay
                 gScore[neighbor] = tentativeGScore;
                 cameFrom[neighbor] = (current, tentativeGScore);
                 if (fScore.ContainsKey(neighbor))
-                    fScore[neighbor] = tentativeGScore + h(neighbor, goal);
-                else fScore.Add(neighbor, tentativeGScore + h(neighbor, goal));
+                    fScore[neighbor] = tentativeGScore + (h?.Invoke(neighbor, goal) ?? 1);
+                else fScore.Add(neighbor, tentativeGScore + (h?.Invoke(neighbor, goal) ?? 1));
                 // actually should skip if frontier already contains neighbor
                 frontier.Enqueue(neighbor, fScore[neighbor]);
             }
@@ -110,6 +111,8 @@ public class Day18 : BaseDay
     }
 
     private static int ManhattanDistance(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
+    
+    private static int ChebyshevDistance(Point a, Point b) => Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
 
     private static void Draw(char[][] maze, HashSet<Point> path = null)
     {
