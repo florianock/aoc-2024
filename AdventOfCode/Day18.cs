@@ -20,7 +20,9 @@ public class Day18 : BaseDay
         _width = input.Count < 30 ? 7 : 71;
         _height = input.Count < 30 ? 7 : 71;
         _time = input.Count < 30 ? 12 : 1024;
-        _walls = input.Select(line => line.Split(',')).Select(s => new Point(int.Parse(s[0]), int.Parse(s[1])))
+        _walls = input
+            .Select(line => line.Split(','))
+            .Select(arr => new Point(int.Parse(arr[0]), int.Parse(arr[1])))
             .ToList();
         _grid = new char[_height][];
         var wallsAtTime = _walls[.._time];
@@ -42,19 +44,15 @@ public class Day18 : BaseDay
 
     private string GetCutOffPoint()
     {
-        // Console.WriteLine("Start");
-        // Draw(_grid, path);
         var path = PathToEnd();
         for (var t = _time; t < _walls.Count; t++)
         {
             var wall = _walls[t];
-            // Console.WriteLine($"{wall} has fallen down.");
             _grid[wall.Y][wall.X] = '#';
             if (path.Contains(wall)) path = PathToEnd();
             // Draw(_grid, path);
-            if (path != null && path.Count != 0) continue;
-            var correctWall = _walls[t - 1];
-            return correctWall.X + "," + correctWall.Y;
+            if (path.Count > 0) continue;
+            return wall.X + "," + wall.Y;
         }
 
         return "-1,-1";
@@ -65,28 +63,6 @@ public class Day18 : BaseDay
         var start = new Point(0, 0);
         var end = new Point(_width - 1, _height - 1);
         return AStar(start, end, ManhattanDistance);
-    }
-    
-    private (int, Dictionary<Point, Point>) PathToEndBAK()
-    {
-        var start = new Point(0, 0);
-        var end = new Point(_width - 1, _height - 1);
-        var (distanceMap, path) = GetDistanceMap(start, _grid);
-        var current = end;
-        while (true)
-        {
-            if (current == start) break;
-            var neighbors = GetNeighbors(current).Where(n =>
-                !path.Keys.Contains(n) &&
-                0 <= n.X && n.X < distanceMap.Length &&
-                0 <= n.Y && n.Y < distanceMap[0].Length &&
-                _grid[n.X][n.Y] != '#').ToList();
-            if (neighbors.Count == 0) continue;
-            current = neighbors.OrderBy(n => distanceMap[n.X][n.Y]).First();
-        }
-
-        // Draw(_grid, path);
-        return (distanceMap[end.X][end.Y], path);
     }
 
     private HashSet<Point> AStar(Point start, Point goal, Func<Point, Point, int> h)
@@ -103,9 +79,9 @@ public class Day18 : BaseDay
             openSet.Remove(current);
             if (current.Equals(goal)) return ReconstructPath(goal);
             foreach (var neighbor in GetNeighbors(current).Where(n =>
-                         0 <= n.X && n.X < _grid.Length &&
-                         0 <= n.Y && n.Y < _grid[0].Length &&
-                         _grid[n.X][n.Y] != '#').ToList())
+                         0 <= n.Y && n.Y < _grid.Length &&
+                         0 <= n.X && n.X < _grid[0].Length &&
+                         _grid[n.Y][n.X] != '#').ToList())
             {
                 var tentativeGScore = gScore[current] + 1; // d(current, neighbor)
                 if (gScore.TryGetValue(neighbor, out var value) && tentativeGScore >= value) continue;
@@ -137,54 +113,13 @@ public class Day18 : BaseDay
 
     private static int ManhattanDistance(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
 
-    private static (int[][], Dictionary<Point, Point>) GetDistanceMap(Point start, char[][] maze)
-    {
-        var distances = InitializeDistanceMap(maze.Length, maze[0].Length);
-        distances[start.X][start.Y] = 0;
-        var cameFrom = new Dictionary<Point, Point>();
-        var todo = new Queue<(int, Point)>();
-        todo.Enqueue((0, start));
-        while (todo.Count > 0)
-        {
-            var (currentDistance, (x, y)) = todo.Dequeue();
-            var neighbors = GetNeighbors(x, y);
-            foreach (var n in neighbors.Where(n =>
-                         0 <= n.X && n.X < maze.Length &&
-                         0 <= n.Y && n.Y < maze[0].Length &&
-                         maze[n.X][n.Y] != '#'))
-            {
-                var (neighborX, neighborY) = n;
-
-                var neighborDistance = currentDistance + 1;
-
-                if (neighborDistance >= distances[neighborX][neighborY]) continue;
-
-                distances[neighborX][neighborY] = neighborDistance;
-                cameFrom[n] = new Point(x, y);
-                todo.Enqueue((neighborDistance, n));
-            }
-        }
-
-        return (distances, cameFrom);
-
-        int[][] InitializeDistanceMap(int numRows, int numColumns)
-        {
-            var map = new int[numRows][];
-            for (var row = 0; row < numRows; row++) map[row] = new int[numColumns];
-            foreach (var row in map)
-                for (var col = 0; col < row.Length; col++)
-                    row[col] = int.MaxValue;
-            return map;
-        }
-    }
-
     private static void Draw(char[][] maze, HashSet<Point> path = null)
     {
-        for (var x = 0; x < maze.Length; x++)
+        for (var y = 0; y < maze.Length; y++)
         {
-            for (var y = 0; y < maze[0].Length; y++)
+            for (var x = 0; x < maze[0].Length; x++)
             {
-                var s = path != null && path.Contains(new Point(x, y)) ? 'O' : maze[x][y];
+                var s = path != null && path.Contains(new Point(x, y)) ? 'O' : maze[y][x];
                 Console.Write(s);
             }
 
@@ -194,13 +129,7 @@ public class Day18 : BaseDay
 
     private static Point[] GetNeighbors(Point p) => GetNeighbors(p.X, p.Y);
 
-    private static Point[] GetNeighbors(int x, int y) =>
-    [
-        new(x + 1, y), // R
-        new(x, y + 1), // D
-        new(x - 1, y), // L
-        new(x, y - 1), // U
-    ];
+    private static Point[] GetNeighbors(int x, int y) => [new(x + 1, y), new(x, y + 1), new(x - 1, y), new(x, y - 1)];
 
     private record Point(int X, int Y);
 }
