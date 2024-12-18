@@ -46,50 +46,74 @@ public class Day18 : BaseDay
     {
         var start = new Point(0, 0);
         var end = new Point(_width - 1, _height - 1);
-        // TODO Flood fill might actually work better
         return ShortestPath(start, end, _grid, ChebyshevDistance);
     }
 
     private string GetCutOffPoint()
     {
-        var path = PathToEnd();
-        for (var t = _time; t < _walls.Count; t++)
+        const int wall = 100;
+        const int flooded = 10;
+        const int empty = 0;
+        
+        var map = new int[_height][];
+        for (var y = 0; y < _height; y++)
         {
-            var wall = _walls[t];
-            _grid[wall.Y][wall.X] = '#';
-            if (path.Contains(wall)) path = PathToEnd();
-            // Draw(_grid, path);
-            if (path.Count > 0) continue;
-            return wall.X + "," + wall.Y;
+            map[y] = new int[_width];
+            for (var x = 0; x < _width; x++)
+            {
+                map[y][x] = empty;
+            }
+        }
+
+        foreach (var w in _walls) map[w.Y][w.X] = wall;
+
+        var start = new Point(0, 0);
+        var end = new Point(_width - 1, _height - 1);
+
+        FloodFill(start);
+
+        foreach (var w in Enumerable.Reverse(_walls))
+        {
+            map[w.Y][w.X] = empty;
+            if (GetNeighbors(w).Any(n => map[n.Y][n.X] == flooded))
+            {
+                FloodFill(w);
+            }
+
+            if (map[end.Y][end.X] == flooded) return $"{w.X},{w.Y}";
         }
 
         return "-1,-1";
+
+        void FloodFill(Point p)
+        {
+            map[p.Y][p.X] = flooded;
+            var neighbors = GetNeighbors(p).Where(n => map[n.Y][n.X] < flooded).ToList();
+            foreach (var n in neighbors) FloodFill(n);
+        }
     }
 
-    private static HashSet<Point> ShortestPath(Point start, Point goal, char[][] grid, Func<Point, Point, int> h = null)
+    private HashSet<Point> ShortestPath(Point start, Point goal, char[][] grid, Func<Point, Point, int> h = null)
     {
         var frontier = new PriorityQueue<Point, int>();
         var cameFrom = new Dictionary<Point, (Point, int)>();
         var gScore = new Dictionary<Point, int> { { start, 0 } };
-        var fScore = new Dictionary<Point, int> { { start, h?.Invoke(start, goal) ?? 1 } };
+        var fScore = new Dictionary<Point, int> { { start, h?.Invoke(start, goal) ?? 0 } };
         frontier.Enqueue(start, 0);
 
         while (frontier.Count > 0)
         {
             var current = frontier.Dequeue();
             if (current.Equals(goal)) return ReconstructPath(goal);
-            foreach (var neighbor in GetNeighbors(current).Where(n =>
-                         0 <= n.Y && n.Y < grid.Length &&
-                         0 <= n.X && n.X < grid[0].Length &&
-                         grid[n.Y][n.X] != '#').ToList())
+            foreach (var neighbor in GetNeighbors(current).Where(n => grid[n.Y][n.X] != '#').ToList())
             {
                 var tentativeGScore = gScore[current] + 1; // d(current, neighbor)
                 if (gScore.TryGetValue(neighbor, out var value) && tentativeGScore >= value) continue;
                 gScore[neighbor] = tentativeGScore;
                 cameFrom[neighbor] = (current, tentativeGScore);
                 if (fScore.ContainsKey(neighbor))
-                    fScore[neighbor] = tentativeGScore + (h?.Invoke(neighbor, goal) ?? 1);
-                else fScore.Add(neighbor, tentativeGScore + (h?.Invoke(neighbor, goal) ?? 1));
+                    fScore[neighbor] = tentativeGScore + (h?.Invoke(neighbor, goal) ?? 0);
+                else fScore.Add(neighbor, tentativeGScore + (h?.Invoke(neighbor, goal) ?? 0));
                 // actually should skip if frontier already contains neighbor
                 frontier.Enqueue(neighbor, fScore[neighbor]);
             }
@@ -111,7 +135,7 @@ public class Day18 : BaseDay
     }
 
     private static int ManhattanDistance(Point a, Point b) => Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y);
-    
+
     private static int ChebyshevDistance(Point a, Point b) => Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
 
     private static void Draw(char[][] maze, HashSet<Point> path = null)
@@ -129,9 +153,12 @@ public class Day18 : BaseDay
         }
     }
 
-    private static Point[] GetNeighbors(Point p) => GetNeighbors(p.X, p.Y);
-
-    private static Point[] GetNeighbors(int x, int y) => [new(x + 1, y), new(x, y + 1), new(x - 1, y), new(x, y - 1)];
+    private Point[] GetNeighbors(Point p)
+    {
+        var (x, y) = p;
+        Point[] neighbors = [new(x + 1, y), new(x, y + 1), new(x - 1, y), new(x, y - 1)];
+        return neighbors.Where(n => 0 <= n.X && n.X < _width && 0 <= n.Y && n.Y < _height).ToArray();
+    }
 
     private record Point(int X, int Y);
 }
