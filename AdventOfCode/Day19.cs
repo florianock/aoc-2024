@@ -30,7 +30,8 @@ public sealed class Day19 : BaseDay
     {
         if (d == string.Empty) return 1;
         if (_cache.TryGetValue(d, out var match)) return match;
-        var count = Enumerable.Range(0, Math.Min(d.Length, _maxLen) + 1).Where(i => _towelPatterns.Contains(d[..i]))
+        var count = Enumerable.Range(0, Math.Min(d.Length, _maxLen) + 1)
+            .Where(i => _towelPatterns.Contains(d[..i]))
             .Sum(i => NumCombinations(d[i..]));
 
         _cache.Add(d, count);
