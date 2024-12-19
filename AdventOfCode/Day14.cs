@@ -64,7 +64,6 @@ public sealed partial class Day14 : BaseDay
 
     private int FindChristmasTree()
     {
-        // The Christmas tree has lowest entropy and therefore much lower TSF
         var maxCycle = _width * _height;
         var totalSafetyFactors = new long[maxCycle];
         for (var t = 0; t < maxCycle; t++)
