@@ -5,8 +5,8 @@
 /// </summary>
 public sealed class Day19 : BaseDay
 {
-    private readonly List<string> _towelPatterns;
-    private readonly IEnumerable<string> _designs;
+    private readonly HashSet<string> _towelPatterns;
+    private readonly HashSet<string> _designs;
     private readonly int _maxLen;
     private readonly Dictionary<string, long> _cache;
 
@@ -16,7 +16,7 @@ public sealed class Day19 : BaseDay
         // var input = "r, wr, b, g, bwu, rb, gb, br\n\nbrwrr\nbggr\ngbbr\nrrbgbr\nubwu\nbwurrg\nbrgr\nbbrgwb"
         // .Split("\n\n")
         // .ToList();
-        _towelPatterns = input[0].Split(", ").ToList();
+        _towelPatterns = input[0].Split(", ").ToHashSet();
         _designs = input[1].Split('\n').ToHashSet();
         _maxLen = _towelPatterns.Max(p => p.Length);
         _cache = new Dictionary<string, long>();
