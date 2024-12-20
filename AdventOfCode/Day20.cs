@@ -53,23 +53,18 @@ public sealed class Day20 : BaseDay
     private int GetCheats(int cheatTime, int minimumTimeSaved) =>
         _path
             .SelectMany(p => CountCheats(p, _path, cheatTime))
-            .Where(v => v.Value > 0)
-            .GroupBy(v => v.Value)
+            .GroupBy(v => v)
             .Where(g => g.Key >= minimumTimeSaved)
             .Sum(g => g.Count());
 
-    private static HashSet<KeyValuePair<Cheat, int>> CountCheats((int, int) point, List<(int, int)> path, int cheatTime)
+    private static int[] CountCheats((int, int) point, List<(int, int)> path, int cheatTime)
     {
         var pIdx = path.IndexOf(point);
-        var shortcuts = path[(pIdx + 1)..].Index().Where(p => ManhattanDistance(point, p.Item) <= cheatTime);
-        HashSet<KeyValuePair<Cheat, int>> cheats = [];
-        foreach (var shortcut in shortcuts)
-        {
-            var result = shortcut.Index - ManhattanDistance(point, shortcut.Item) + 1;
-            cheats.Add(new KeyValuePair<Cheat, int>(new Cheat(point, shortcut.Item), result));
-        }
-
-        return cheats;
+        return path[(pIdx + 1)..]
+            .Index()
+            .Where(p => ManhattanDistance(point, p.Item) <= cheatTime)
+            .Select(shortcut => shortcut.Index - ManhattanDistance(point, shortcut.Item) + 1)
+            .ToArray();
     }
 
     private static int ManhattanDistance((int, int) a, (int, int) b) =>
@@ -81,6 +76,4 @@ public sealed class Day20 : BaseDay
             [(point.r - 1, point.c), (point.r, point.c - 1), (point.r, point.c + 1), (point.r + 1, point.c)];
         return selector != null ? ns.Where(selector).ToHashSet() : ns.ToHashSet();
     }
-
-    private record Cheat((int, int) Start, (int, int) End);
 }
