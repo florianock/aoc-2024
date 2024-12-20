@@ -64,18 +64,40 @@ public sealed partial class Day14 : BaseDay
 
     private int FindChristmasTree()
     {
-        var maxCycle = _width * _height;
-        var totalSafetyFactors = new long[maxCycle];
-        for (var t = 0; t < maxCycle; t++)
+        var offset = (-1, -1);
+        var totalSafetyFactor = 0UL;
+        for (var t = 0; t < Math.Min(_width, _height) + 1; t++)
         {
             var newPositions = _robots.Select(r => Move(r, t)).ToList();
-            totalSafetyFactors[t] = GetTotalSafetyFactor(newPositions);
+            var sf = GetTotalSafetyFactor(newPositions);
+            totalSafetyFactor += (ulong)sf;
+            if (t < 1) continue;
+            var meanSafetyFactor = totalSafetyFactor / (ulong)(t + 1);
+            if ((double)sf / meanSafetyFactor > 0.65) continue;
+            if (offset.Item1 == -1)
+            {
+                offset.Item1 = t;
+            }
+            else
+            {
+                offset.Item2 = t;
+                break;
+            }
             // Print(newPositions, t);
             // var answer = Console.ReadKey();
             // if (answer.KeyChar == 'q') break;
         }
 
-        return totalSafetyFactors.Index().MinBy(s => s.Item).Index;
+        var wc = new int[100];
+        var hc = new int[100];
+        for (var x = 0; x < 100; x++)
+        {
+            wc[x] = 103 * x + offset.Item1;
+            hc[x] = 101 * x + offset.Item2;
+            if (wc.Contains(hc[x])) return hc[x];
+        }
+
+        return -1;
     }
 
     private void Print(List<Position> positions, int t)
