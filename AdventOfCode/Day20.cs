@@ -10,30 +10,20 @@ public sealed class Day20 : BaseDay
 
     public Day20()
     {
-        var input = File.ReadLines(InputFilePath).ToList();
-        // var input =
-        // "###############\n#...#...#.....#\n#.#.#.#.#.###.#\n#S#...#.#.#...#\n#######.#.#.###\n#######.#.#...#\n#######.#.###.#\n###..E#...#...#\n###.#######.###\n#...###...#...#\n#.#####.#.###.#\n#.#...#.#.#...#\n#.#.#.#.#.#.###\n#...#...#...###\n###############"
-        // .Split("\n").ToList();
-        _timeGoal = input.Count < 20 ? 12 : 100;
-        var start = (0, 0);
-        var end = (1, 1);
-        for (var r = 0; r < input.Count; r++)
-        {
-            for (var c = 0; c < input[0].Length; c++)
-            {
-                switch (input[r][c])
-                {
-                    case 'S': start = (r, c); break;
-                    case 'E': end = (r, c); break;
-                }
-            }
-        }
+        var input = File.ReadAllText(InputFilePath);
+        // var input = "###############\n#...#...#.....#\n#.#.#.#.#.###.#\n#S#...#.#.#...#\n#######.#.#.###\n#######.#.#...#\n#######.#.###.#\n###..E#...#...#\n###.#######.###\n#...###...#...#\n#.#####.#.###.#\n#.#...#.#.#...#\n#.#.#.#.#.#.###\n#...#...#...###\n###############";
+        var width = input.IndexOf('\n');
+        _timeGoal = width < 20 ? 12 : 100;
+        var s = input.IndexOf('S');
+        var start = (s / (width + 1), s % (width + 1));
 
         List<(int, int)> path = [start];
         var current = start;
-        while (current != end)
+        while (true)
         {
-            current = GetNeighbors(current, n => input[n.Item1][n.Item2] != '#').First(n => !path.Contains(n));
+            var neighbors = GetNeighbors(current, n => input[n.Item1 * (width + 1) + n.Item2] != '#');
+            if (current != start && neighbors.Count == 1) break;
+            current = neighbors.First(n => !path.Contains(n));
             path.Add(current);
         }
 
@@ -44,33 +34,30 @@ public sealed class Day20 : BaseDay
 
     public override ValueTask<string> Solve_2() => new($"{GetCheats(20, _timeGoal)}");
 
-    private int GetCheats(int cheatTime, int minimumTimeSaved)
+    private int GetCheats(int cheatTime, int timeGoal)
     {
         var q = new Queue<(int, (int, int))>(_path);
-        var cheatsCounter = new int[q.Count];
+        var cheatsCounter = 0;
         while (q.Count > 0)
-        {
-            var next = q.Dequeue();
-            var cheats = CountCheats(next, q, cheatTime);
-            foreach (var i in cheats)
-                cheatsCounter[i]++;
-        }
+            cheatsCounter += CountCheats(q.Dequeue(), q, cheatTime, timeGoal);
 
-        return cheatsCounter[minimumTimeSaved..].Sum();
+        return cheatsCounter;
     }
 
-    private static IEnumerable<int> CountCheats((int Steps, (int, int) Coords) point,
+    private static int CountCheats((int Steps, (int, int) Coords) point,
         Queue<(int Steps, (int, int) Coords)> path,
-        int cheatTime)
+        int cheatTime,
+        int timeGoal)
     {
-        if (path.Count == 0) return [];
+        if (path.Count == 0) return 0;
         return path
-            .Where(p => Distance(point.Coords, p.Coords) <= cheatTime)
-            .Select(shortcut => shortcut.Steps - point.Steps - Distance(point.Coords, shortcut.Coords));
+            .Where(p =>
+            {
+                var d = Math.Abs(point.Coords.Item1 - p.Coords.Item1) + Math.Abs(point.Coords.Item2 - p.Coords.Item2);
+                return d <= cheatTime && p.Steps - point.Steps - d >= timeGoal;
+            })
+            .Count();
     }
-
-    private static int Distance((int, int) a, (int, int) b) =>
-        Math.Abs(a.Item1 - b.Item1) + Math.Abs(a.Item2 - b.Item2);
 
     private static HashSet<(int, int)> GetNeighbors((int r, int c) point, Func<(int, int), bool> selector = null)
     {
