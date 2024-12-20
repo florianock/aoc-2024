@@ -12,7 +12,7 @@ public sealed class Day20 : BaseDay
 
     public Day20()
     {
-        // var input = File.ReadLines(InputFilePath).ToList(); // 1422
+        // var input = File.ReadLines(InputFilePath).ToList();
         var input =
             "###############\n#...#...#.....#\n#.#.#.#.#.###.#\n#S#...#.#.#...#\n#######.#.#.###\n#######.#.#...#\n#######.#.###.#\n###..E#...#...#\n###.#######.###\n#...###...#...#\n#.#####.#.###.#\n#.#...#.#.#...#\n#.#.#.#.#.#.###\n#...#...#...###\n###############"
                 .Split("\n").ToList();
@@ -40,7 +40,6 @@ public sealed class Day20 : BaseDay
     private int Cheat(int cheatTime, int minimumPicoSecondsSaved)
     {
         List<(int, int)> path = [_start];
-        var cheatOptions = new HashSet<(int, int)>();
         var current = _start;
         while (current != _end)
         {
@@ -49,29 +48,30 @@ public sealed class Day20 : BaseDay
             neighbors.ExceptWith(walls);
             current = neighbors.First(n => !path.Contains(n));
             path.Add(current);
-            cheatOptions.UnionWith(walls.Where(n =>
-                n is { Item1: > 0, Item2: > 0 } &&
-                n.Item1 < _grid.GetLength(0) &&
-                n.Item2 < _grid.GetLength(1)));
         }
 
         path.TrimExcess();
-        cheatOptions.TrimExcess();
 
-        return cheatOptions
-            .Select(w => CountCheats(w, path, cheatTime))
-            .GroupBy(v => v)
+        var grouped = path
+            .Select(p => CountCheats(p, path, cheatTime))
+            .GroupBy(v => v.Value);
+
+        return grouped
             .Where(g => g.Key >= minimumPicoSecondsSaved)
             .Sum(g => g.Count());
     }
 
-    private static int CountCheats((int, int) wall, List<(int, int)> path, int cheatTime)
+    private static KeyValuePair<(int, int), int> CountCheats((int, int) point, List<(int, int)> path, int cheatTime)
     {
-        var neighbors = GetNeighbors(wall, path.Contains);
-        if (neighbors.Count < 2) return 0;
-        var indexes = neighbors.Select(n => path.IndexOf(n)).ToArray();
-        return indexes.Max() - indexes.Min() - 2;
+        var shortcuts = path.Index().Where(p => ManhattanDistance(point, p.Item) <= cheatTime);
+        var furthest = shortcuts.MaxBy(p => p.Index);
+        var result = furthest.Index - path.IndexOf(point) - ManhattanDistance(point, furthest.Item);
+        Console.WriteLine($"{point};{result}");
+        return new KeyValuePair<(int, int), int>(point, result);
     }
+
+    private static int ManhattanDistance((int, int) a, (int, int) b) =>
+        Math.Abs(a.Item1 - b.Item1) + Math.Abs(a.Item2 - b.Item2);
 
     private static HashSet<(int, int)> GetNeighbors((int r, int c) point, Func<(int, int), bool> selector = null)
     {
