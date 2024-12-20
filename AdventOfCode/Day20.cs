@@ -5,69 +5,71 @@
 /// </summary>
 public sealed class Day20 : BaseDay
 {
-    private readonly char[,] _grid;
-    private readonly (int, int) _start;
-    private readonly (int, int) _end;
-    private readonly int _goalSaved;
+    private readonly List<(int, int)> _path;
+    private readonly int _timeGoal;
 
     public Day20()
     {
-        // var input = File.ReadLines(InputFilePath).ToList();
-        var input =
-            "###############\n#...#...#.....#\n#.#.#.#.#.###.#\n#S#...#.#.#...#\n#######.#.#.###\n#######.#.#...#\n#######.#.###.#\n###..E#...#...#\n###.#######.###\n#...###...#...#\n#.#####.#.###.#\n#.#...#.#.#...#\n#.#.#.#.#.#.###\n#...#...#...###\n###############"
-                .Split("\n").ToList();
-        _goalSaved = input.Count < 20 ? 12 : 100;
-        _grid = new char[input.Count, input[0].Length];
+        var input = File.ReadLines(InputFilePath).ToList();
+        // var input =
+            // "###############\n#...#...#.....#\n#.#.#.#.#.###.#\n#S#...#.#.#...#\n#######.#.#.###\n#######.#.#...#\n#######.#.###.#\n###..E#...#...#\n###.#######.###\n#...###...#...#\n#.#####.#.###.#\n#.#...#.#.#...#\n#.#.#.#.#.#.###\n#...#...#...###\n###############"
+                // .Split("\n").ToList();
+        _timeGoal = input.Count < 20 ? 12 : 100;
+        var grid = new char[input.Count, input[0].Length];
+        var start = (0, 0);
+        var end = (1, 1);
         for (var r = 0; r < input.Count; r++)
         {
             for (var c = 0; c < input[0].Length; c++)
             {
                 switch (input[r][c])
                 {
-                    case 'S': _start = (r, c); break;
-                    case 'E': _end = (r, c); break;
+                    case 'S': start = (r, c); break;
+                    case 'E': end = (r, c); break;
                 }
 
-                _grid[r, c] = input[r][c];
+                grid[r, c] = input[r][c];
             }
         }
-    }
 
-    public override ValueTask<string> Solve_1() => new($"{Cheat(2, _goalSaved)}"); // Test: 8
-
-    public override ValueTask<string> Solve_2() => new($"{Cheat(20, _goalSaved)}"); // Test: 
-
-    private int Cheat(int cheatTime, int minimumPicoSecondsSaved)
-    {
-        List<(int, int)> path = [_start];
-        var current = _start;
-        while (current != _end)
+        _path = [start];
+        var current = start;
+        while (current != end)
         {
             var neighbors = GetNeighbors(current);
-            var walls = neighbors.Where(n => _grid[n.Item1, n.Item2] == '#').ToHashSet();
+            var walls = neighbors.Where(n => grid[n.Item1, n.Item2] == '#').ToHashSet();
             neighbors.ExceptWith(walls);
-            current = neighbors.First(n => !path.Contains(n));
-            path.Add(current);
+            current = neighbors.First(n => !_path.Contains(n));
+            _path.Add(current);
         }
 
-        path.TrimExcess();
-
-        var grouped = path
-            .Select(p => CountCheats(p, path, cheatTime))
-            .GroupBy(v => v.Value);
-
-        return grouped
-            .Where(g => g.Key >= minimumPicoSecondsSaved)
-            .Sum(g => g.Count());
+        _path.TrimExcess();
     }
 
-    private static KeyValuePair<(int, int), int> CountCheats((int, int) point, List<(int, int)> path, int cheatTime)
+    public override ValueTask<string> Solve_1() => new($"{GetCheats(2, _timeGoal)}"); // Test: 8
+
+    public override ValueTask<string> Solve_2() => new($"{GetCheats(20, _timeGoal)}");
+
+    private int GetCheats(int cheatTime, int minimumTimeSaved) =>
+        _path
+            .SelectMany(p => CountCheats(p, _path, cheatTime))
+            .Where(v => v.Value > 0)
+            .GroupBy(v => v.Value)
+            .Where(g => g.Key >= minimumTimeSaved)
+            .Sum(g => g.Count());
+
+    private static HashSet<KeyValuePair<Cheat, int>> CountCheats((int, int) point, List<(int, int)> path, int cheatTime)
     {
-        var shortcuts = path.Index().Where(p => ManhattanDistance(point, p.Item) <= cheatTime);
-        var furthest = shortcuts.MaxBy(p => p.Index);
-        var result = furthest.Index - path.IndexOf(point) - ManhattanDistance(point, furthest.Item);
-        Console.WriteLine($"{point};{result}");
-        return new KeyValuePair<(int, int), int>(point, result);
+        var pIdx = path.IndexOf(point);
+        var shortcuts = path[(pIdx + 1)..].Index().Where(p => ManhattanDistance(point, p.Item) <= cheatTime);
+        HashSet<KeyValuePair<Cheat, int>> cheats = [];
+        foreach (var shortcut in shortcuts)
+        {
+            var result = shortcut.Index - ManhattanDistance(point, shortcut.Item) + 1;
+            cheats.Add(new KeyValuePair<Cheat, int>(new Cheat(point, shortcut.Item), result));
+        }
+
+        return cheats;
     }
 
     private static int ManhattanDistance((int, int) a, (int, int) b) =>
@@ -79,4 +81,6 @@ public sealed class Day20 : BaseDay
             [(point.r - 1, point.c), (point.r, point.c - 1), (point.r, point.c + 1), (point.r + 1, point.c)];
         return selector != null ? ns.Where(selector).ToHashSet() : ns.ToHashSet();
     }
+
+    private record Cheat((int, int) Start, (int, int) End);
 }
