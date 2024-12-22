@@ -1,54 +1,48 @@
 ﻿namespace AdventOfCode;
 
-using BananaChanges = Dictionary<(byte, byte, byte, byte), int>;
-
 /// <summary>
 /// --- Day 22: Monkey Market ---
 /// </summary>
 public sealed class Day22 : BaseDay
 {
-    private readonly IEnumerable<string> _input;
+    private readonly IEnumerable<long> _input;
 
     public Day22()
     {
-        _input = File.ReadLines(InputFilePath);
-        // _input = "1\n10\n100\n2024".Split('\n'); // part 1
-        // _input = "1\n2\n3\n2024".Split('\n'); // part 2
+        _input = File.ReadLines(InputFilePath).Select(long.Parse).ToList();
+        // _input = "1\n10\n100\n2024".Split('\n').Select(long.Parse).ToList(); // part 1, Test: 37327623
+        // _input = "1\n2\n3\n2024".Split('\n').Select(long.Parse).ToList(); // part 2, Test: 23
     }
 
-    public override ValueTask<string> Solve_1() => new($"{_input
-        .AsParallel()
-        .Sum(n => GetFinalSecretNumber(long.Parse(n)))}"); // Test: 37327623
+    public override ValueTask<string> Solve_1() => new($"{_input.AsParallel().Sum(GetFinalSecretNumber)}");
 
     public override ValueTask<string> Solve_2() => new($"{_input
-        .Aggregate(new BananaChanges(), (agg, n) => GetBananaChangesForSecret(long.Parse(n), agg))
-        .Max(n => n.Value)}"); // Test: 23
+        .Aggregate(new Dictionary<int, int>(), (agg, n) => GetChangesForSecret(n, agg))
+        .Max(n => n.Value)}");
 
     private static long GetFinalSecretNumber(long number) =>
         Enumerable.Range(0, 2000).Aggregate(number, (current, _) => GetNextSecretNumber(current));
 
-    private static BananaChanges GetBananaChangesForSecret(long number, BananaChanges changesLookup)
+    private static Dictionary<int, int> GetChangesForSecret(long number, Dictionary<int, int> allChanges)
     {
-        var theseChanges = new HashSet<(byte, byte, byte, byte)>();
+        var seenKeys = new HashSet<int>();
         var previousPrice = GetPrice(number);
-        (byte, byte, byte, byte) key = (0, 0, 0, 0);
-        var currentSecret = number;
+        var key = 0;
         for (var i = 0; i < 2000 - 1; i++)
         {
-            currentSecret = GetNextSecretNumber(currentSecret);
-            var price = GetPrice(currentSecret);
-            var (_, a, b, c) = key;
-            key = (a, b, c, (byte)(price - previousPrice + 10));
+            number = GetNextSecretNumber(number);
+            var price = GetPrice(number);
+            key = ((key & 0x7FFF) << 5) + price - previousPrice + 10;
             previousPrice = price;
-            if (i < 3 || theseChanges.Contains(key)) continue;
-            var value = changesLookup.GetValueOrDefault(key, 0);
-            changesLookup[key] = price + value;
-            theseChanges.Add(key);
+            if (i < 3 || seenKeys.Contains(key)) continue;
+            var value = allChanges.GetValueOrDefault(key, 0);
+            allChanges[key] = price + value;
+            seenKeys.Add(key);
         }
 
-        return changesLookup;
+        return allChanges;
 
-        byte GetPrice(long secret) => (byte)(secret % 10);
+        int GetPrice(long secret) => (int)(secret % 10);
     }
 
     private static long GetNextSecretNumber(long secretNumber)
