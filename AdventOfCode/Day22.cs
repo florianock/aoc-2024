@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode;
 
-using BananaChanges = Dictionary<(byte, byte, byte, byte), int>;
+using BananaChanges = Dictionary<(sbyte, sbyte, sbyte, sbyte), int>;
 
 /// <summary>
 /// --- Day 22: Monkey Market ---
@@ -16,10 +16,12 @@ public sealed class Day22 : BaseDay
         // _input = "1\n2\n3\n2024".Split('\n'); // part 2
     }
 
-    public override ValueTask<string> Solve_1() =>
-        new($"{_input.AsParallel().Sum(n => GetFinalSecretNumber(int.Parse(n)))}"); // Test: 37327623
+    public override ValueTask<string> Solve_1() => new($"{_input
+        .AsParallel()
+        .Sum(n => GetFinalSecretNumber(int.Parse(n)))}"); // Test: 37327623
 
     public override ValueTask<string> Solve_2() => new($"{_input
+        .AsParallel()
         .Aggregate(new BananaChanges(), (agg, n) => Merge(agg, GetBananaChangesForSecret(int.Parse(n))))
         .Max(n => n.Value)}"); // Test: 23
 
@@ -30,14 +32,14 @@ public sealed class Day22 : BaseDay
     {
         var changesLookup = new BananaChanges();
         var previousPrice = GetPrice(number);
-        (byte, byte, byte, byte) changes = (0, 0, 0, 0);
+        (sbyte, sbyte, sbyte, sbyte) changes = (0, 0, 0, 0);
         var currentSecret = (long)number;
         for (var i = 0; i < 2000 - 1; i++)
         {
             currentSecret = GetNextSecretNumber(currentSecret);
             var price = GetPrice(currentSecret);
             var (_, a, b, c) = changes;
-            changes = (a, b, c, (byte)(price - previousPrice));
+            changes = (a, b, c, (sbyte)(price - previousPrice));
             previousPrice = price;
             if (i >= 3)
             {
@@ -47,7 +49,7 @@ public sealed class Day22 : BaseDay
 
         return changesLookup;
 
-        byte GetPrice(long secret) => (byte)(secret % 10);
+        sbyte GetPrice(long secret) => (sbyte)(secret % 10);
     }
 
     private static long GetNextSecretNumber(long secretNumber)
