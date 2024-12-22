@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode;
 
-using BananaChanges = Dictionary<(sbyte, sbyte, sbyte, sbyte), int>;
+using BananaChanges = Dictionary<(byte, byte, byte, byte), int>;
 
 /// <summary>
 /// --- Day 22: Monkey Market ---
@@ -18,57 +18,46 @@ public sealed class Day22 : BaseDay
 
     public override ValueTask<string> Solve_1() => new($"{_input
         .AsParallel()
-        .Sum(n => GetFinalSecretNumber(int.Parse(n)))}"); // Test: 37327623
+        .Sum(n => GetFinalSecretNumber(long.Parse(n)))}"); // Test: 37327623
 
     public override ValueTask<string> Solve_2() => new($"{_input
-        .AsParallel()
-        .Aggregate(new BananaChanges(), (agg, n) => Merge(agg, GetBananaChangesForSecret(int.Parse(n))))
+        .Aggregate(new BananaChanges(), (agg, n) => GetBananaChangesForSecret(long.Parse(n), agg))
         .Max(n => n.Value)}"); // Test: 23
 
-    private static long GetFinalSecretNumber(int number) =>
-        Enumerable.Range(0, 2000).Aggregate((long)number, (current, _) => GetNextSecretNumber(current));
+    private static long GetFinalSecretNumber(long number) =>
+        Enumerable.Range(0, 2000).Aggregate(number, (current, _) => GetNextSecretNumber(current));
 
-    private static BananaChanges GetBananaChangesForSecret(int number)
+    private static BananaChanges GetBananaChangesForSecret(long number, BananaChanges changesLookup)
     {
-        var changesLookup = new BananaChanges();
+        var theseChanges = new HashSet<(byte, byte, byte, byte)>();
         var previousPrice = GetPrice(number);
-        (sbyte, sbyte, sbyte, sbyte) changes = (0, 0, 0, 0);
-        var currentSecret = (long)number;
+        (byte, byte, byte, byte) key = (0, 0, 0, 0);
+        var currentSecret = number;
         for (var i = 0; i < 2000 - 1; i++)
         {
             currentSecret = GetNextSecretNumber(currentSecret);
             var price = GetPrice(currentSecret);
-            var (_, a, b, c) = changes;
-            changes = (a, b, c, (sbyte)(price - previousPrice));
+            var (_, a, b, c) = key;
+            key = (a, b, c, (byte)(price - previousPrice + 10));
             previousPrice = price;
-            if (i >= 3)
-            {
-                changesLookup.TryAdd(changes, price);
-            }
+            if (i < 3 || theseChanges.Contains(key)) continue;
+            var value = changesLookup.GetValueOrDefault(key, 0);
+            changesLookup[key] = price + value;
+            theseChanges.Add(key);
         }
 
         return changesLookup;
 
-        sbyte GetPrice(long secret) => (sbyte)(secret % 10);
+        byte GetPrice(long secret) => (byte)(secret % 10);
     }
 
     private static long GetNextSecretNumber(long secretNumber)
     {
-        secretNumber = Prune(Mix(secretNumber * 64L, secretNumber));
-        secretNumber = Prune(Mix(secretNumber / 32L, secretNumber));
-        return Prune(Mix(secretNumber * 2048L, secretNumber));
+        secretNumber = Prune(Mix(secretNumber << 6, secretNumber));
+        secretNumber = Prune(Mix(secretNumber >> 5, secretNumber));
+        return Prune(Mix(secretNumber << 11, secretNumber));
 
         long Mix(long n, long secret) => n ^ secret;
         long Prune(long n) => n % 16777216L;
-    }
-
-    private static BananaChanges Merge(BananaChanges a, BananaChanges b)
-    {
-        return b.Aggregate(a, (agg, cur) =>
-        {
-            if (agg.TryGetValue(cur.Key, out _)) agg[cur.Key] += cur.Value;
-            else agg[cur.Key] = cur.Value;
-            return agg;
-        });
     }
 }
