@@ -6,37 +6,43 @@
 public sealed class Day21 : BaseDay
 {
     private readonly IEnumerable<string> _input;
+    private readonly Dictionary<char[][], Dictionary<(char, char), string[]>> _moves;
 
-    private readonly Dictionary<char, (int, int)> _numericKeypad = new()
-    {
-        { 'A', (3, 2) },
-        { '0', (3, 1) },
-        { '1', (2, 0) },
-        { '2', (2, 1) },
-        { '3', (2, 2) },
-        { '4', (1, 0) },
-        { '5', (1, 1) },
-        { '6', (1, 2) },
-        { '7', (0, 0) },
-        { '8', (0, 1) },
-        { '9', (0, 2) },
-        { 'X', (3, 0) }
-    };
+    private readonly char[][] _numericKeypad =
+    [
+        ['7', '8', '9'],
+        ['4', '5', '6'],
+        ['1', '2', '3'],
+        ['X', '0', 'A']
+    ];
 
-    private readonly Dictionary<char, (int, int)> _directionalKeypad = new()
-    {
-        { 'A', (0, 2) },
-        { '^', (0, 1) },
-        { '<', (1, 0) },
-        { 'v', (1, 1) },
-        { '>', (1, 2) },
-        { 'X', (0, 0) }
-    };
+    private readonly char[][] _directionalKeypad =
+    [
+        ['X', '^', 'A'],
+        ['<', 'v', '>']
+    ];
 
     public Day21()
     {
-        // _input = File.ReadLines(InputFilePath); // 227666 too high
-        _input = "029A\n980A\n179A\n456A\n379A".Split("\n");
+        _input = File.ReadLines(InputFilePath);
+        // _input = "029A\n980A\n179A\n456A\n379A".Split("\n");
+        // _input = ["029A"];
+        var positions = new Dictionary<char[][], Dictionary<char, (int, int)>>();
+        _moves = [];
+        List<char[][]> keypads = [_numericKeypad, _directionalKeypad];
+        foreach (var keypad in keypads)
+        {
+            positions[keypad] = [];
+            for (var r = 0; r < keypad.Length; r++)
+            {
+                for (var c = 0; c < keypad[r].Length; c++)
+                {
+                    if (keypad[r][c] != 'X') positions[keypad].Add(keypad[r][c], (r, c));
+                }
+            }
+
+            _moves.Add(keypad, MovesForKeypad(keypad, positions[keypad]));
+        }
     }
 
     public override ValueTask<string> Solve_1() => new($"{DoStuff()}"); // Test: 126384
@@ -46,143 +52,100 @@ public sealed class Day21 : BaseDay
     private int DoStuff(bool part2 = false)
     {
         if (part2) return 0;
-        return _input.Aggregate(0, (acc, code) => acc + Complexity(code, GetButtonPresses(code)));
+        return _input.Select(s =>
+        {
+            var robot1 = GetMoves(s, _numericKeypad);
+            var robot2 = robot1.SelectMany(m => GetMoves(m, _directionalKeypad)).ToList();
+            var minLen = robot2.Min(r => r.Length);
+            robot2 = robot2.Where(r => r.Length == minLen).ToList();
+            var robot3 = robot2.SelectMany(m => GetMoves(m, _directionalKeypad)).ToList();
+            minLen = robot3.Min(r => r.Length);
+            return (s, minLen); //robot3.Where(r => r.Length == minLen).ToList();
+        })
+        .Aggregate(0, (acc, cur) => acc + Complexity(cur.Item1, cur.Item2));
     }
 
-    private int GetButtonPresses(string code)
+    private string[] GetMoves(string s, char[][] keypad)
     {
-        var current = code;
-        List<Dictionary<char, (int, int)>> keypads = [_numericKeypad, _directionalKeypad, _directionalKeypad];
-        foreach (var result in keypads.Select(keypad => current
-                     .Select((c, i) => Move(i > 0 ? current[i - 1] : 'A', c, keypad))
-                     .Aggregate("", (current1, m) => current1 + m)))
-        {
-            current = result;
-        }
+        var seqs = _moves[keypad];
+        s = "A" + s;
+        List<string[]> options = [];
+        for (var i = 0; i < s.Length - 1; i++)
+            options.Add(seqs[(s[i], s[i + 1])]);
 
-        Console.WriteLine($"{code}: {current}");
-        return current.Length;
+        var product = CartesianProduct(options).Select(x => x.ToList()).ToList();
+        return product.Select(arr => string.Join("", arr)).ToArray();
+
+        IEnumerable<IEnumerable<T>> CartesianProduct<T>(IEnumerable<IEnumerable<T>> sequences)
+        {
+            IEnumerable<IEnumerable<T>> emptyProduct = [[]];
+            return sequences.Aggregate(emptyProduct, (accumulator, sequence) =>
+                from accseq in accumulator
+                from item in sequence
+                select accseq.Concat([item]));
+        }
     }
 
-    private static string Move(char start, char end, Dictionary<char, (int, int)> keypad)
+    private static Dictionary<(char, char), string[]> MovesForKeypad(char[][] keypad, Dictionary<char, (int, int)> pos)
     {
-        // Console.WriteLine($"Inc from {start} to {end}");
-        var result = Inc(keypad[start], keypad[end]);
-
-        result += 'A';
-        return result;
-
-        string Inc((int, int) a, (int, int) b)
+        Dictionary<(char, char), string[]> seqs = [];
+        foreach (var x in pos.Keys)
         {
-            var avoid = keypad['X'];
-            if (a == avoid)
-                throw new ArgumentException($"Panic! Cannot go through {a} -> {b} when going from {start} to {end}.");
-            if (a == b) return "";
-            var rDiff = b.Item1 - a.Item1;
-            var cDiff = b.Item2 - a.Item2;
-            // Console.WriteLine($"row diff: {rDiff}; col diff: {cDiff}");
-            var movingLeft = cDiff < 0;
-            var (a1, a2) = a;
-            var nextChar = "";
-            var nextA = avoid;
-            if (!movingLeft || cDiff == -1)
+            foreach (var y in pos.Keys)
             {
-                if (rDiff > 0)
+                if (x == y)
                 {
-                    nextChar = "v";
-                    nextA = (a1 + 1, a2);
+                    seqs.Add((x, y), ["A"]);
+                    continue;
                 }
-                else if (rDiff < 0)
-                {
-                    nextChar = "^";
-                    nextA = (a1 - 1, a2);
-                }
-                else if (cDiff > 0)
-                {
-                    nextChar = ">";
-                    nextA = (a1, a2 + 1);
-                }
-                else if (cDiff < 0)
-                {
-                    nextChar = "<";
-                    nextA = (a1, a2 - 1);
-                }
-            }
-            else
-            {
-                if (cDiff > 0)
-                {
-                    nextChar = ">";
-                    nextA = (a1, a2 + 1);
-                }
-                else if (cDiff < 0)
-                {
-                    nextChar = "<";
-                    nextA = (a1, a2 - 1);
-                }
-                else if (rDiff > 0)
-                {
-                    nextChar = "v";
-                    nextA = (a1 + 1, a2);
-                }
-                else if (rDiff < 0)
-                {
-                    nextChar = "^";
-                    nextA = (a1 - 1, a2);
-                }
-            }
 
-            if (nextA == avoid)
-            {
-                if (avoid == (0, 0))
+                List<string> possibilities = [];
+                var q = new Queue<((int, int), string)>();
+                q.Enqueue((pos[x], ""));
+                var optimal = int.MaxValue;
+                while (q.Count > 0)
                 {
-                    if (movingLeft)
+                    var ((r, c), moves) = q.Dequeue();
+                    foreach (var (nr, nc, nm) in GetNeighbors(r, c,
+                                 n =>
+                                     0 <= n.Item1 && n.Item1 < keypad.Length &&
+                                     0 <= n.Item2 && n.Item2 < keypad[0].Length &&
+                                     keypad[n.Item1][n.Item2] != 'X'))
                     {
-                        nextChar = "v";
-                        nextA = (a1 + 1, a2);
-                    }
-                    else
-                    {
-                        nextChar = ">";
-                        nextA = (a1, a2 + 1);
+                        if (keypad[nr][nc] == y)
+                        {
+                            if (optimal < moves.Length + 1) goto Found;
+                            optimal = moves.Length + 1;
+                            possibilities.Add(moves + nm + "A");
+                        }
+                        else
+                        {
+                            q.Enqueue(((nr, nc), moves + nm));
+                        }
                     }
                 }
-                else // avoid == (3,0)
-                {
-                    if (movingLeft)
-                    {
-                        nextChar = "^";
-                        nextA = (a1 - 1, a2);
-                    }
-                    else
-                    {
-                        nextChar = ">";
-                        nextA = (a1, a2 + 1);
-                    }
-                }
-            }
 
-            return nextChar + Inc(nextA, b);
-            // rDiff != 0 && cDiff != 0
-            // should we move first over rows or columns? Or interchanging?
-            // if (cDiff > 0) return ">" + Inc((a1, a2 + 1), b);
-            // if (cDiff < 0) return "<" + Inc((a1, a2 - 1), b);
-            // if (cDiff < 0 && rDiff == 0) // danger; avoid early
-            // {
-            // return "<" + Inc((a1, a2 - 1), b);
-            // }
-            // if (cDiff < 0 && !(avoid.Item1 == a1 && a2 - avoid.Item2 == 1)) // danger; avoid late
-            // {
-            // return "<" + Inc((a1, a2 - 1), b);
-            // }
-            return "";
+                Found:
+                seqs[(x, y)] = possibilities.ToArray();
+            }
         }
+
+        // Console.WriteLine(string.Join("; ", seqs.Select(s => $"{s.Key}: [{string.Join(",", s.Value)}]")));
+        return seqs;
     }
 
     private static int Complexity(string code, int buttonPresses)
     {
         var numericPart = int.Parse(string.Join("", code.Where(char.IsDigit)));
-        Console.WriteLine($"{code}: {buttonPresses} * {numericPart}");
+        // Console.WriteLine($"{code}: {buttonPresses} * {numericPart}");
         return buttonPresses * numericPart;
+    }
+
+    private static HashSet<(int, int, string)> GetNeighbors(int r, int c,
+        Func<(int, int, string), bool> selector = null)
+    {
+        HashSet<(int, int, string)> ns =
+            [(r - 1, c, "^"), (r + 1, c, "v"), (r, c - 1, "<"), (r, c + 1, ">")];
+        return selector != null ? ns.Where(selector).ToHashSet() : ns.ToHashSet();
     }
 }
