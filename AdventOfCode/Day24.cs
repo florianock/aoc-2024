@@ -63,6 +63,6 @@ public sealed class Day24 : BaseDay
         Array.Sort(outputs);
         Array.Reverse(outputs);
         var result = string.Join("", outputs.Select(o => _values[o]));
-        return Convert.ToInt64(result, 2); // TODO convert to binary to get 2024
+        return Convert.ToInt64(result, 2);
     }
 }
