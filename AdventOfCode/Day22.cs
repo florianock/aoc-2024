@@ -28,11 +28,16 @@ public sealed class Day22 : BaseDay
         var seenKeys = new HashSet<int>();
         var previousPrice = GetPrice(number);
         var key = 0;
-        for (var i = 0; i < 2000 - 1; i++)
+        var changes = (0, 0, 0, 0);
+        for (var i = 0; i < 1999; i++)
         {
             number = GetNextSecretNumber(number);
             var price = GetPrice(number);
-            key = ((key & 0x7FFF) << 5) + price - previousPrice + 10;
+            var change = price - previousPrice;
+            key = ((key & 0x7FFF) << 5) + change + 10;
+            var (_, a, b, c) = changes;
+            changes = (a, b, c, change);
+            // Console.WriteLine($"{changes} -> {key}");
             previousPrice = price;
             if (i < 3 || seenKeys.Contains(key)) continue;
             var value = allChanges.GetValueOrDefault(key, 0);
@@ -52,6 +57,6 @@ public sealed class Day22 : BaseDay
         return Prune(Mix(secretNumber << 11, secretNumber));
 
         long Mix(long n, long secret) => n ^ secret;
-        long Prune(long n) => n % 16777216L;
+        long Prune(long n) => n & 0xFFFFFF;
     }
 }
