@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode;
+﻿using AdventOfCode.Utils;
+
+namespace AdventOfCode;
 
 /// <summary>
 /// --- Day 21: Keypad Conundrum ---
@@ -7,6 +9,7 @@ public sealed class Day21 : BaseDay
 {
     private readonly IEnumerable<string> _input;
     private readonly Dictionary<char[][], Dictionary<(char, char), string[]>> _moves;
+    private readonly Dictionary<string, (string[], int)> _cache;
 
     private readonly char[][] _numericKeypad =
     [
@@ -43,24 +46,25 @@ public sealed class Day21 : BaseDay
 
             _moves.Add(keypad, MovesForKeypad(keypad, positions[keypad]));
         }
+
+        _cache = [];
     }
 
     public override ValueTask<string> Solve_1() => new($"{CalculateMinimumButtonPresses(2)}"); // Test: 126384
 
-    public override ValueTask<string> Solve_2() => new($"{CalculateMinimumButtonPresses(25)}"); // Test: 
+    public override ValueTask<string> Solve_2() => new($"{CalculateMinimumButtonPresses(3)}"); // Test: 
 
     private int CalculateMinimumButtonPresses(int roboDepth)
     {
-        if (roboDepth > 2) return 0;
+        if (roboDepth > 2) return 1;
         return _input.Select(s =>
             {
-                var minLen = int.MaxValue;
-                var currentMoves = GetMoves(s, _numericKeypad);
+                var (currentMoves, minLen) = GetMoves(s, _numericKeypad);
                 for (var i = roboDepth; i > 0; i--)
                 {
-                    currentMoves = currentMoves.SelectMany(m => GetMoves(m, _directionalKeypad)).ToArray();
-                    minLen = currentMoves.Min(r => r.Length);
-                    currentMoves = currentMoves.Where(r => r.Length == minLen).ToArray();
+                    var a = currentMoves.Select(m => GetMoves(m, _directionalKeypad)).ToArray();
+                    var moves = a.Select(b => b.Item1);
+                    var lengths = a.Select(b => b.Item2);
                 }
 
                 return (s, minLen);
@@ -68,25 +72,22 @@ public sealed class Day21 : BaseDay
             .Aggregate(0, (acc, cur) => acc + Complexity(cur.Item1, cur.Item2));
     }
 
-    private string[] GetMoves(string s, char[][] keypad)
+    private (string[], int) GetMoves(string s, char[][] keypad)
     {
+        if (_cache.TryGetValue(s, out var cachedValue)) return cachedValue;
+
         var seqs = _moves[keypad];
         s = "A" + s;
         List<string[]> options = [];
         for (var i = 0; i < s.Length - 1; i++)
             options.Add(seqs[(s[i], s[i + 1])]);
 
-        var product = CartesianProduct(options).Select(x => x.ToList()).ToList();
-        return product.Select(arr => string.Join("", arr)).ToArray();
-
-        IEnumerable<IEnumerable<T>> CartesianProduct<T>(IEnumerable<IEnumerable<T>> sequences)
-        {
-            IEnumerable<IEnumerable<T>> emptyProduct = [[]];
-            return sequences.Aggregate(emptyProduct, (accumulator, sequence) =>
-                from accseq in accumulator
-                from item in sequence
-                select accseq.Concat([item]));
-        }
+        var product = options.CartesianProduct().Select(x => x.ToList()).ToList();
+        var result = product.Select(arr => string.Join("", arr)).ToArray();
+        var minLen = result.Min(r => r.Length);
+        result = result.Where(r => r.Length == minLen).ToArray();
+        _cache[s] = (result, minLen);
+        return (result, minLen);
     }
 
     private static Dictionary<(char, char), string[]> MovesForKeypad(char[][] keypad, Dictionary<char, (int, int)> pos)
