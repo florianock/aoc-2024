@@ -21,14 +21,11 @@ public sealed class Day25 : BaseDay
         foreach (var block in input)
         {
             var lines = block.Split('\n');
+            var pinCount = CountColumns(lines);
             if (lines[0].All(c => c == '#') && lines[^1].All(c => c == '.'))
-            {
-                _locks.Add(CountColumns(lines));
-            }
+                _locks.Add(pinCount);
             else if (lines[0].All(c => c == '.') && lines[^1].All(c => c == '#'))
-            {
-                _keys.Add(CountColumns(lines));
-            }
+                _keys.Add(pinCount);
             else throw new ArgumentException($"Input {block} is not valid.");
         }
 
@@ -55,6 +52,7 @@ public sealed class Day25 : BaseDay
 
     private int FitKeys(bool part2 = false)
     {
+        if (part2) return -1;
         var counter = 0;
         foreach (var l in _locks)
         {
