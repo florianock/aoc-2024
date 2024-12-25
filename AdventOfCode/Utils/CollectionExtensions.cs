@@ -1,6 +1,6 @@
 ﻿namespace AdventOfCode.Utils;
 
-public static class Collections
+public static class CollectionExtensions
 {
     // Source: https://ericlippert.com/2010/06/28/computing-a-cartesian-product-with-linq/
     public static IEnumerable<IEnumerable<T>> CartesianProduct<T>(this IEnumerable<IEnumerable<T>> sequences)
