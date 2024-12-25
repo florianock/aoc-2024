@@ -21,7 +21,7 @@ public sealed class Day25 : BaseDay
         foreach (var block in input)
         {
             var lines = block.Split('\n');
-            var pinCount = CountColumns(lines);
+            var pinCount = CountPins(lines);
             if (lines[0].All(c => c == '#') && lines[^1].All(c => c == '.'))
                 _locks.Add(pinCount);
             else if (lines[0].All(c => c == '.') && lines[^1].All(c => c == '#'))
@@ -31,7 +31,7 @@ public sealed class Day25 : BaseDay
 
         return;
 
-        List<int> CountColumns(string[] lines)
+        List<int> CountPins(string[] lines)
         {
             var width = lines[0].Length;
             var result = new List<int>(width);
