@@ -24,8 +24,8 @@ public sealed class Day21 : BaseDay
 
     public Day21()
     {
-        _input = File.ReadLines(InputFilePath);
-        // _input = "029A\n980A\n179A\n456A\n379A".Split("\n");
+        // _input = File.ReadLines(InputFilePath);
+        _input = "029A\n980A\n179A\n456A\n379A".Split("\n");
         // _input = ["029A"];
         var positions = new Dictionary<char[][], Dictionary<char, (int, int)>>();
         _moves = [];
@@ -45,24 +45,27 @@ public sealed class Day21 : BaseDay
         }
     }
 
-    public override ValueTask<string> Solve_1() => new($"{DoStuff()}"); // Test: 126384
+    public override ValueTask<string> Solve_1() => new($"{CalculateMinimumButtonPresses(2)}"); // Test: 126384
 
-    public override ValueTask<string> Solve_2() => new($"{DoStuff(true)}"); // Test: 
+    public override ValueTask<string> Solve_2() => new($"{CalculateMinimumButtonPresses(25)}"); // Test: 
 
-    private int DoStuff(bool part2 = false)
+    private int CalculateMinimumButtonPresses(int roboDepth)
     {
-        if (part2) return 0;
+        if (roboDepth > 2) return 0;
         return _input.Select(s =>
-        {
-            var robot1 = GetMoves(s, _numericKeypad);
-            var robot2 = robot1.SelectMany(m => GetMoves(m, _directionalKeypad)).ToList();
-            var minLen = robot2.Min(r => r.Length);
-            robot2 = robot2.Where(r => r.Length == minLen).ToList();
-            var robot3 = robot2.SelectMany(m => GetMoves(m, _directionalKeypad)).ToList();
-            minLen = robot3.Min(r => r.Length);
-            return (s, minLen); //robot3.Where(r => r.Length == minLen).ToList();
-        })
-        .Aggregate(0, (acc, cur) => acc + Complexity(cur.Item1, cur.Item2));
+            {
+                var minLen = int.MaxValue;
+                var currentMoves = GetMoves(s, _numericKeypad);
+                for (var i = roboDepth; i > 0; i--)
+                {
+                    currentMoves = currentMoves.SelectMany(m => GetMoves(m, _directionalKeypad)).ToArray();
+                    minLen = currentMoves.Min(r => r.Length);
+                    currentMoves = currentMoves.Where(r => r.Length == minLen).ToArray();
+                }
+
+                return (s, minLen);
+            })
+            .Aggregate(0, (acc, cur) => acc + Complexity(cur.Item1, cur.Item2));
     }
 
     private string[] GetMoves(string s, char[][] keypad)
@@ -130,16 +133,11 @@ public sealed class Day21 : BaseDay
             }
         }
 
-        // Console.WriteLine(string.Join("; ", seqs.Select(s => $"{s.Key}: [{string.Join(",", s.Value)}]")));
         return seqs;
     }
 
-    private static int Complexity(string code, int buttonPresses)
-    {
-        var numericPart = int.Parse(string.Join("", code.Where(char.IsDigit)));
-        // Console.WriteLine($"{code}: {buttonPresses} * {numericPart}");
-        return buttonPresses * numericPart;
-    }
+    private static int Complexity(string code, int buttonPresses) =>
+        buttonPresses * int.Parse(string.Join("", code.Where(char.IsDigit)));
 
     private static HashSet<(int, int, string)> GetNeighbors(int r, int c,
         Func<(int, int, string), bool> selector = null)
