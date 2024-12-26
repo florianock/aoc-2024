@@ -1,68 +1,67 @@
 ﻿namespace AdventOfCode;
 
 /// <summary>
-/// --- Day 23:  ---
+/// --- Day 23: LAN Party ---
 /// </summary>
 public sealed class Day23 : BaseDay
 {
-    private readonly HashSet<string[]> _couples;
-    private readonly HashSet<string[]> _triples;
+    private readonly HashSet<HashSet<string>> _couples;
 
     public Day23()
     {
-        var input =
-            "kh-tc\nqp-kh\nde-cg\nka-co\nyn-aq\nqp-ub\ncg-tb\nvc-aq\ntb-ka\nwh-tc\nyn-cg\nkh-ub\nta-co\nde-co\ntc-td\ntb-wq\nwh-td\nta-ka\ntd-qp\naq-cg\nwq-ub\nub-vc\nde-ta\nwq-aq\nwq-vc\nwh-yn\nka-de\nkh-ta\nco-tc\nwh-qp\ntb-vc\ntd-yn"
-                .Split('\n').ToList();
-        // var input = File.ReadLines(InputFilePath).ToList();
+        // var input =
+            // "kh-tc\nqp-kh\nde-cg\nka-co\nyn-aq\nqp-ub\ncg-tb\nvc-aq\ntb-ka\nwh-tc\nyn-cg\nkh-ub\nta-co\nde-co\ntc-td\ntb-wq\nwh-td\nta-ka\ntd-qp\naq-cg\nwq-ub\nub-vc\nde-ta\nwq-aq\nwq-vc\nwh-yn\nka-de\nkh-ta\nco-tc\nwh-qp\ntb-vc\ntd-yn"
+                // .Split('\n');
+        var input = File.ReadLines(InputFilePath);
         _couples = [];
         foreach (var parts in input.Select(line => line.Split('-')))
-        {
-            _couples.Add(parts);
-            // _couples.Add((parts[1], parts[0]));
-        }
-
-        // Console.WriteLine($"{input.Count} -> {_couples.Count}");
-        _triples = [];
+            _couples.Add([parts[0], parts[1]]);
     }
 
-    public override ValueTask<string> Solve_1() => new($"{FindTriplesAndCountTs()}"); // Test: 7
+    public override ValueTask<string> Solve_1() =>
+        new($"{GroupLarger(_couples).Count(str => str.Split(',').Any(s => s.StartsWith('t')))}"); // Test: 7
 
-    public override ValueTask<string> Solve_2() => new($"{FindLanParty()}"); // Test: co,de,ka,ta
+    public override ValueTask<string> Solve_2() => new($"{FindLanParty(_couples)}"); // Test: co,de,ka,ta
 
-    private string FindLanParty()
+    private static HashSet<string> GroupLarger(HashSet<HashSet<string>> collection)
     {
-        if (_triples == null || _triples.Count == 0)
-            FindTriplesAndCountTs();
-        // Lan Party is largest subset where every computer is connected to every other computer
-        throw new NotImplementedException();
+        var groupSize = collection.First().Count;
+        return collection.AsParallel().Select(item =>
+                collection
+                    .Select(i => i.Except(item))
+                    .Where(s => s.Count() == 1)
+                    .SelectMany(s => s)
+                    .GroupBy(x => x)
+                    .OrderByDescending(g => g.Count())
+                    .Where(g => g.Count() == groupSize)
+                    .Select(g => new List<string>(groupSize + 1) { g.Key })
+                    .Select(s =>
+                    {
+                        s.AddRange(item);
+                        return string.Join(",", s.Order().ToArray());
+                    })
+            )
+            .Where(s => s.Any())
+            .SelectMany(s => s)
+            .ToHashSet();
     }
 
-    private int FindTriplesAndCountTs()
+    private static string FindLanParty(HashSet<HashSet<string>> collection)
     {
-        // var ts = _couples.Where(c => c.Item1.StartsWith('t') || c.Item2.StartsWith('t')).ToList();
-        foreach (var couple in _couples)
+        var nextLarger = GroupLarger(collection).Select(str => str.Split(',').ToHashSet());
+        Dictionary<string, int> popularity = [];
+        foreach (var item in nextLarger)
         {
-            var results = _couples.Where(c => c[0] != couple[0] && c[1] != couple[1] &&
-                                              (c[0] == couple[0] || c[0] == couple[1])).Select(c => c[1]).ToList();
-            var otherResults = _couples.Where(c => c[0] != couple[0] && c[1] != couple[1] &&
-                                                   (c[1] == couple[0] || c[1] == couple[1])).Select(c => c[0]).ToList();
-            results.AddRange(otherResults);
-            var connects = results
-                .GroupBy(x => x)
-                .Where(g => g.Count() > 1)
-                .Select(y => y.Key);
-            foreach (var c in connects)
+            foreach (var i in item)
             {
-                string[] t = [couple[0], couple[1], c];
-                Array.Sort(t);
-                _triples.Add(t);
+                if (!popularity.TryGetValue(i, out _)) popularity.Add(i, 0);
+                popularity[i] += 1;
             }
         }
 
-        var startWithT = _triples
-            .Where(t => t.Any(x => x.StartsWith('t')))
-            // .OrderBy()
-            .ToList();
-        return startWithT.Count;
+        var max = popularity.Max(x => x.Value);
+        var answer = popularity.Where(kv => kv.Value == max).Select(kv => kv.Key).ToArray();
+
+        return string.Join(",", answer.Order());
     }
 }
