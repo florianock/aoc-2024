@@ -1,14 +1,12 @@
-﻿using System.Diagnostics;
-
-namespace AdventOfCode;
+﻿namespace AdventOfCode;
 
 /// <summary>
 /// --- Day 25: Code Chronicle ---
 /// </summary>
 public sealed class Day25 : BaseDay
 {
-    private readonly List<List<int>> _locks;
-    private readonly List<List<int>> _keys;
+    private readonly List<int[]> _locks;
+    private readonly List<int[]> _keys;
 
     public Day25()
     {
@@ -20,29 +18,18 @@ public sealed class Day25 : BaseDay
         _keys = [];
         foreach (var block in input)
         {
-            var lines = block.Split('\n');
-            var pinCount = CountPins(lines);
-            if (lines[0].All(c => c == '#') && lines[^1].All(c => c == '.'))
-                _locks.Add(pinCount);
-            else if (lines[0].All(c => c == '.') && lines[^1].All(c => c == '#'))
-                _keys.Add(pinCount);
-            else throw new ArgumentException($"Input {block} is not valid.");
-        }
+            var width = block.IndexOf('\n');
+            var isLock = false;
+            var pins = Enumerable.Repeat(-1, width).ToArray();
+            for (var i = 0; i < block.Length; i++)
+                if (block[i] == '#')
+                {
+                    pins[i % (width + 1)] += 1;
+                    if (i == 0) isLock = true;
+                }
 
-        return;
-
-        List<int> CountPins(string[] lines)
-        {
-            var width = lines[0].Length;
-            var result = new List<int>(width);
-            for (var c = 0; c < width; c++)
-            {
-                result.Add(-1);
-                foreach (var line in lines)
-                    if (line[c] == '#') result[c] += 1;
-            }
-
-            return result;
+            if (isLock) _locks.Add(pins);
+            else _keys.Add(pins);
         }
     }
 
@@ -53,17 +40,10 @@ public sealed class Day25 : BaseDay
     private int FitKeys(bool part2 = false)
     {
         if (part2) return -1;
-        var counter = 0;
-        foreach (var l in _locks)
-        {
-            foreach (var k in _keys)
-            {
-                Debug.Assert(l.Count == k.Count);
-                var fits = !l.Where((pins, col) => pins + k[col] > 5).Any();
-                if (fits) counter++;
-            }
-        }
 
-        return counter;
+        return _locks
+            .Sum(l => _keys
+                .Select(k => !l.Where((pins, col) => pins + k[col] > 5).Any())
+                .Count(fits => fits));
     }
 }
