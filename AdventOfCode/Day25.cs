@@ -12,8 +12,8 @@ public sealed class Day25 : BaseDay
     {
         var input = File.ReadAllText(InputFilePath).Split("\n\n");
         // var input =
-            // "#####\n.####\n.####\n.####\n.#.#.\n.#...\n.....\n\n#####\n##.##\n.#.##\n...##\n...#.\n...#.\n.....\n\n.....\n#....\n#....\n#...#\n#.#.#\n#.###\n#####\n\n.....\n.....\n#.#..\n###..\n###.#\n###.#\n#####\n\n.....\n.....\n.....\n#....\n#.#..\n#.#.#\n#####"
-                // .Split("\n\n");
+        // "#####\n.####\n.####\n.####\n.#.#.\n.#...\n.....\n\n#####\n##.##\n.#.##\n...##\n...#.\n...#.\n.....\n\n.....\n#....\n#....\n#...#\n#.#.#\n#.###\n#####\n\n.....\n.....\n#.#..\n###..\n###.#\n###.#\n#####\n\n.....\n.....\n.....\n#....\n#.#..\n#.#.#\n#####"
+        // .Split("\n\n");
         _locks = [];
         _keys = [];
         foreach (var block in input)
@@ -35,15 +35,11 @@ public sealed class Day25 : BaseDay
 
     public override ValueTask<string> Solve_1() => new($"{FitKeys()}"); // Test: 3
 
-    public override ValueTask<string> Solve_2() => new($"{FitKeys(true)}"); // Test: 
+    public override ValueTask<string> Solve_2() => new("Deliver Chronicle!");
 
-    private int FitKeys(bool part2 = false)
-    {
-        if (part2) return -1;
-
-        return _locks
-            .Sum(l => _keys
-                .Select(k => !l.Where((pins, col) => pins + k[col] > 5).Any())
-                .Count(fits => fits));
-    }
+    private int FitKeys() => _locks
+        .Sum(l => _keys
+            .Select(k => !l.Where((pins, col) => pins + k[col] > 5).Any())
+            .Count(fits => fits)
+        );
 }
