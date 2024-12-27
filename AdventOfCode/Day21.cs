@@ -9,7 +9,8 @@ public sealed class Day21 : BaseDay
 {
     private readonly IEnumerable<string> _input;
     private readonly Dictionary<char[][], Dictionary<(char, char), string[]>> _moves;
-    private readonly Dictionary<string, (string[], int)> _cache;
+    private readonly Dictionary<(string, int), long> _cache;
+    private readonly Dictionary<(char, char), int> _directionalPresses;
 
     private readonly char[][] _numericKeypad =
     [
@@ -27,10 +28,9 @@ public sealed class Day21 : BaseDay
 
     public Day21()
     {
-        // _input = File.ReadLines(InputFilePath);
-        _input = "029A\n980A\n179A\n456A\n379A".Split("\n");
-        // _input = ["029A"];
-        var positions = new Dictionary<char[][], Dictionary<char, (int, int)>>();
+        _input = File.ReadLines(InputFilePath);
+        // _input = "029A\n980A\n179A\n456A\n379A".Split("\n");
+        Dictionary<char[][], Dictionary<char, (int, int)>> positions = [];
         _moves = [];
         List<char[][]> keypads = [_numericKeypad, _directionalKeypad];
         foreach (var keypad in keypads)
@@ -44,62 +44,80 @@ public sealed class Day21 : BaseDay
                 }
             }
 
-            _moves.Add(keypad, MovesForKeypad(keypad, positions[keypad]));
+            _moves.Add(keypad, PossibleMovesOnKeypad(keypad, positions[keypad]));
         }
 
         _cache = [];
+        _directionalPresses = _moves[_directionalKeypad].ToDictionary(kvp => kvp.Key, kvp => kvp.Value[0].Length);
     }
 
     public override ValueTask<string> Solve_1() => new($"{CalculateMinimumButtonPresses(2)}"); // Test: 126384
 
-    public override ValueTask<string> Solve_2() => new($"{CalculateMinimumButtonPresses(3)}"); // Test: 
+    public override ValueTask<string> Solve_2() => new($"{CalculateMinimumButtonPresses(25)}"); // Test: 154115708116294
 
-    private int CalculateMinimumButtonPresses(int roboDepth)
+    private long CountPressesOnDirectionalKeypad(string sequence, int depth = 2)
     {
-        if (roboDepth > 2) return 1;
-        return _input.Select(s =>
+        if (_cache.TryGetValue((sequence, depth), out var stepsCount)) return stepsCount;
+
+        if (depth == 1)
+        {
+            var sum = 0;
+            for (var i = -1; i < sequence.Length - 1; i++)
             {
-                var (currentMoves, minLen) = GetMoves(s, _numericKeypad);
-                for (var i = roboDepth; i > 0; i--)
-                {
-                    var a = currentMoves.Select(m => GetMoves(m, _directionalKeypad)).ToArray();
-                    var moves = a.Select(b => b.Item1);
-                    var lengths = a.Select(b => b.Item2);
-                }
+                var x = i > -1 ? sequence[i] : 'A';
+                sum += _directionalPresses[(x, sequence[i + 1])];
+            }
 
-                return (s, minLen);
-            })
-            .Aggregate(0, (acc, cur) => acc + Complexity(cur.Item1, cur.Item2));
+            return sum;
+        }
+
+        var length = 0L;
+        for (var i = -1; i < sequence.Length - 1; i++)
+        {
+            var x = i > -1 ? sequence[i] : 'A';
+            length += _moves[_directionalKeypad][(x, sequence[i + 1])]
+                .Select(subSequence => CountPressesOnDirectionalKeypad(subSequence, depth - 1)).Min();
+        }
+
+        _cache[(sequence, depth)] = length;
+        return length;
     }
 
-    private (string[], int) GetMoves(string s, char[][] keypad)
-    {
-        if (_cache.TryGetValue(s, out var cachedValue)) return cachedValue;
+    private long CalculateMinimumButtonPresses(int roboDepth) =>
+    (
+        from input in _input
+        let length = GetMovesOnNumericKeypad(input)
+            .Select(m => CountPressesOnDirectionalKeypad(m, roboDepth))
+            .Min()
+        select Complexity(input, length)
+    ).Sum();
 
-        var seqs = _moves[keypad];
-        s = "A" + s;
+    private string[] GetMovesOnNumericKeypad(string s)
+    {
         List<string[]> options = [];
-        for (var i = 0; i < s.Length - 1; i++)
-            options.Add(seqs[(s[i], s[i + 1])]);
+        for (var i = -1; i < s.Length - 1; i++)
+        {
+            var x = i > -1 ? s[i] : 'A';
+            options.Add(_moves[_numericKeypad][(x, s[i + 1])]);
+        }
 
-        var product = options.CartesianProduct().Select(x => x.ToList()).ToList();
-        var result = product.Select(arr => string.Join("", arr)).ToArray();
-        var minLen = result.Min(r => r.Length);
-        result = result.Where(r => r.Length == minLen).ToArray();
-        _cache[s] = (result, minLen);
-        return (result, minLen);
+        return options
+            .CartesianProduct()
+            .Select(arr => string.Join("", arr))
+            .ToArray();
     }
 
-    private static Dictionary<(char, char), string[]> MovesForKeypad(char[][] keypad, Dictionary<char, (int, int)> pos)
+    private static Dictionary<(char, char), string[]> PossibleMovesOnKeypad(char[][] keypad,
+        Dictionary<char, (int, int)> pos)
     {
-        Dictionary<(char, char), string[]> seqs = [];
+        Dictionary<(char, char), string[]> sequences = [];
         foreach (var x in pos.Keys)
         {
             foreach (var y in pos.Keys)
             {
                 if (x == y)
                 {
-                    seqs.Add((x, y), ["A"]);
+                    sequences.Add((x, y), ["A"]);
                     continue;
                 }
 
@@ -130,15 +148,15 @@ public sealed class Day21 : BaseDay
                 }
 
                 Found:
-                seqs[(x, y)] = possibilities.ToArray();
+                sequences[(x, y)] = possibilities.ToArray();
             }
         }
 
-        return seqs;
+        return sequences;
     }
 
-    private static int Complexity(string code, int buttonPresses) =>
-        buttonPresses * int.Parse(string.Join("", code.Where(char.IsDigit)));
+    private static long Complexity(string code, long buttonPresses) =>
+        buttonPresses * long.Parse(string.Join("", code.Where(char.IsDigit)));
 
     private static HashSet<(int, int, string)> GetNeighbors(int r, int c,
         Func<(int, int, string), bool> selector = null)
