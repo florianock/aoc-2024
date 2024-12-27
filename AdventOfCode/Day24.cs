@@ -42,27 +42,27 @@ public sealed class Day24 : BaseDay
          * |  --Xn-|-----|   |--------|-AND-|--|-----|--Cout
          * -----Yn-|-AND-|---------------------|-OR--|
          */
-        
+
         // Topology is like this:
         // (HALF ADDER)
         // x00 XOR y00 -> z00 (in, in, out)
         // x00 AND y00 -> pgc (carry out)
-        
+
         // (FULL ADDER)
         // x01 XOR y01 -> tct (in, in)
         // x01 AND y01 -> mwc
         // pgc XOR tct -> z01 (carry in, out)
         // tct AND pgc -> qjs
         // mwc OR qjs -> pfv (carry out)
-        
+
         // (...)
-        
+
         // FULL ADDERS UNTIL z44
         // carry out of last FULL ADDER goes to z45
 
         // Let's check some conditions: output wires are swapped in adders 6, 20 and 39; in adder 10, two other wires
         // correct answer (found by hand): ckb,kbs,ksv,nbd,tqq,z06,z20,z39
-        
+
         var outputs = _values.Keys.Where(k => k.StartsWith('z')).Order().ToArray();
         var outputsNotConnectedToXor = outputs.Where(o => !_gates.Any(g => g.Item4 == o && g.Item2 == "XOR")).ToArray();
         // all inputs (x, y) are both connected to an AND and a XOR
@@ -77,7 +77,7 @@ public sealed class Day24 : BaseDay
         }
 
         // Add(11, 13);
-        var faultyWires = new List<string>(8) { "z05", "z02", "z01", "z00" };
+        var faultyWires = new List<string>(8) { "ckb", "kbs", "ksv", "nbd", "tqq", "z06", "z20", "z39" };
         return string.Join(",", faultyWires.Order());
     }
 
