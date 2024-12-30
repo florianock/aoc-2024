@@ -5,7 +5,7 @@
 /// </summary>
 public class Day07 : BaseDay
 {
-    private readonly List<List<long>> _input;
+    private readonly IEnumerable<long[]> _input;
 
     public Day07()
     {
@@ -14,7 +14,7 @@ public class Day07 : BaseDay
         // "190: 10 19\n3267: 81 40 27\n83: 17 5\n156: 15 6\n7290: 6 8 6 15\n161011: 16 10 13\n192: 17 8 14\n21037: 9 7 18 13\n292: 11 6 16 20"
         // .Split("\n");
 
-        _input = lines.Select(s => s.Split(' ').Select(i => long.Parse(i.Replace(":", ""))).ToList()).ToList();
+        _input = lines.Select(s => s.Split(' ').Select(i => long.Parse(i.Replace(":", ""))).ToArray()).ToList();
     }
 
     public override ValueTask<string> Solve_1() => new($"{FirstPart()}"); // Test: 3749
@@ -27,9 +27,9 @@ public class Day07 : BaseDay
     private long SecondPart() =>
         _input.Select(puzzle => HasSolution(puzzle[0], puzzle[1..], true) ? puzzle[0] : 0).Sum();
 
-    private static bool HasSolution(long answer, List<long> parts, bool useConcatenation = false)
+    private static bool HasSolution(long answer, long[] parts, bool useConcatenation = false)
     {
-        if (parts.Count == 1) return answer == parts[0];
+        if (parts.Length == 1) return answer == parts[0];
         if (answer % parts[^1] == 0 && HasSolution(answer / parts[^1], parts[..^1], useConcatenation)) return true;
         if (answer > parts[^1] && HasSolution(answer - parts[^1], parts[..^1], useConcatenation)) return true;
         if (!useConcatenation) return false;
